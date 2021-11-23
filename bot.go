@@ -34,8 +34,6 @@ func readFile(conf_name, conf_path, conf_type string) (config Config, err error)
 	if conf_path == "" {
 		viper.AddConfigPath(".")
 	}
-	//	viper.AddConfigPath("/home/erjones/gitstuff/GO/discord-go-panda")
-	//	viper.AddConfigPath("/home/jonesin/gitstuff/discord-go-panda")
 	err = viper.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %w \n", err))
