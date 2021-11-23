@@ -1,0 +1,13 @@
+# Discord Specific Settings
+discord:
+  token: "DISCORD_BOT_TOKEN"
+  send_time: "16"
+  owner: "DISCORD_USER_ID"
+
+# Database Configurations
+database:
+  ip: "localhost"
+  db_username: "DB_MASTER_USERNAME"
+  db_password: "DB_MASTER_PASSWORD"
+  dl_username: "ALT_DB_USERNAME"
+  dl_password: "ALT_DB_PASSWORD"
