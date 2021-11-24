@@ -6,10 +6,12 @@ import (
 	"fmt"
 	//	"io/ioutil"
 	//	"net/http"
+	//	"math/rand"
 	"os"
 	"os/signal"
-	//	"strings"
+	"strings"
 	"syscall"
+	//	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
@@ -89,8 +91,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	if m.Content == "yaface" {
+	if strings.Contains(m.Content, "yaface") {
 		_, err := s.ChannelMessageSend(m.ChannelID, "nahhh, definitely yours :stuck_out_tongue:")
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	// Beans Function, v2
+	if strings.Contains(m.Content, "beans") {
+		// Get our message!
+		message := gimmeBeans(m.Author.Mention())
+
+		// Now lets Send our bean!
+		_, err := s.ChannelMessageSend(m.ChannelID, message.String())
 		if err != nil {
 			fmt.Println(err)
 		}
