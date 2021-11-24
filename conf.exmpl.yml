@@ -3,6 +3,7 @@ discord:
   token: "DISCORD_BOT_TOKEN"
   send_time: "16"
   owner: "DISCORD_USER_ID"
+  guild: "DISCORD_GUILD_ID"
 
 # Database Configurations
 database:

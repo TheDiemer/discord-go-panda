@@ -23,6 +23,7 @@ type Config struct {
 		Token     string `yaml:"token"`
 		Send_time string `yaml:"send_time"`
 		Owner     string `yaml:"owner"`
+		Guild     string `yaml:"guild"`
 	} `yaml:"discord"`
 	Database struct {
 		IP          string `yaml:"ip"`
