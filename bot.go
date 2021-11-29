@@ -7,10 +7,11 @@ import (
 	//	"io/ioutil"
 	//	"net/http"
 	//	"math/rand"
+	"log"
 	"os"
 	"os/signal"
 	"strings"
-	"syscall"
+	//	"syscall"
 	//	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -34,7 +35,10 @@ type Config struct {
 	} `yaml:"database"`
 }
 
-func main() {
+var s *discordgo.Session
+var conf Config
+
+func init() {
 	// Read and Load up the config file
 	conf, err := readFile("conf.yml", "", "yaml")
 	// Drop out in case it fails to load the config
@@ -42,34 +46,90 @@ func main() {
 		fmt.Println("Fatal error config file: %w \n", err)
 		return
 	}
-	// fmt.Println(conf.Discord.Token)
-
+	fmt.Println(conf.Discord.Token)
+//	var err error
 	// Create a new Discord session using our bot token
-	dg, err := discordgo.New("Bot " + conf.Discord.Token)
+	fmt.Println(conf.Discord.Token)
+	s, err = discordgo.New("Bot " + conf.Discord.Token)
 	// Error checking!
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
+		log.Fatalf("Invalid bot parameters: %v", err)
 	}
+}
 
-	// Register the messageCreate func as a callback for MessageCreate events.
+var (
+	commands = []*discordgo.ApplicationCommand{
+		{
+			Name: "beans",
+			Description: "Give the gift of beans",
+		},
+	}
+	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"beans": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "test",//gimmeBeans(s.State.User.Mention()).String(),
+				},
+			})
+		},
+	}
+)
 
-	dg.AddHandler(messageCreate)
+func init() {
+	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
+			h(s, i)
+		}
+	})
+}
 
-	dg.Identify.Intents = discordgo.IntentsGuildMessages
+func main() {
+	// This is a placeholder to make sure the config gets loaded properly
+	// fmt.Println(conf.Discord.Token)
 
-	err = dg.Open()
+	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		log.Println("bot is up!")
+	})
+	err := s.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
+		log.Fatalf("Cannot open the session: %v", err)
 	}
 
-	fmt.Println("Bot is now running. Press CTRL-C to exit.")
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
+// 	command := &discordgo.ApplicationCommand{
+// 		Name: "beans",
+// 		Type: discordgo.ChatApplicationCommand,
+// 		Description: "give the gift of beans",
+// 	}
+// 	s.ApplicationCommandCreate(s.State.User.ID, conf.Discord.Guild, command)
+	 // _, err := s.ApplicationCommandCreate(s.State.User.ID, conf.Discord.Guild, command)
+	 //if err != nil {
+	 //	log.Panicf("cannot create '%v' command %v", command, err)
+	 //}
+	 for _, v := range commands {
+	 	_, err := s.ApplicationCommandCreate(s.State.User.ID, conf.Discord.Guild, v)
+	 	if err != nil {
+	 		log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+	 	}
+	 }
+	defer s.Close()
 
-	dg.Close()
+	stop := make(chan os.Signal)
+	signal.Notify(stop, os.Interrupt)
+	<-stop
+	log.Println("gracefully shutting down")
+//	// Register the messageCreate func as a callback for MessageCreate events.
+//	s.AddHandler(messageCreate)
+//
+//	s.Identify.Intents = discordgo.IntentsGuildMessages
+//
+//
+//	fmt.Println("Bot is now running. Press CTRL-C to exit.")
+//	sc := make(chan os.Signal, 1)
+//	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+//	<-sc
+//
+//	defer s.Close()
 }
 
 func readFile(conf_name, conf_path, conf_type string) (config Config, err error) {
@@ -98,15 +158,15 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			fmt.Println(err)
 		}
 	}
-	// Beans Function, v2
-	if strings.Contains(m.Content, "beans") {
-		// Get our message!
-		message := gimmeBeans(m.Author.Mention())
+	//// Beans Function, v2
+	//if strings.Contains(m.Content, "beans") {
+	//	// Get our message!
+	//	message := gimmeBeans(m.Author.Mention())
 
-		// Now lets Send our bean!
-		_, err := s.ChannelMessageSend(m.ChannelID, message.String())
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
+	//	// Now lets Send our bean!
+	//	_, err := s.ChannelMessageSend(m.ChannelID, message.String())
+	//	if err != nil {
+	//		fmt.Println(err)
+	//	}
+	//}
 }
