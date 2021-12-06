@@ -57,6 +57,8 @@ func init() {
 	}
 }
 
+//var msg = gimmeBeans(s.State.User.Mention()).String()
+
 var (
 	commands = []*discordgo.ApplicationCommand{
 		{
@@ -69,7 +71,7 @@ var (
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "test",//gimmeBeans(s.State.User.Mention()).String(),
+					Content: gimmeBeans(s.State.User.Mention()).String(),
 				},
 			})
 		},
