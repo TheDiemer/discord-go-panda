@@ -9,12 +9,13 @@ import (
 	//	"math/rand"
 	"os"
 	"os/signal"
-	"strings"
+	//"strings"
 	"syscall"
 	//	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/spf13/viper"
+	"github.com/TheDiemer/discord-go-panda/commands"
 )
 
 // Building our config structure so we can use the unmarshalled config values
@@ -54,7 +55,8 @@ func main() {
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 
-	dg.AddHandler(messageCreate)
+	//dg.AddHandler(messageCreate)
+	dg.AddHandler(commands.CommandsHandler)
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 
@@ -84,29 +86,4 @@ func readFile(conf_name, conf_path, conf_type string) (config Config, err error)
 	}
 	err = viper.Unmarshal(&config)
 	return
-}
-
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// Ignore all messages sent by the bot
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-
-	if strings.Contains(m.Content, "yaface") {
-		_, err := s.ChannelMessageSend(m.ChannelID, "nahhh, definitely yours :stuck_out_tongue:")
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	// Beans Function, v2
-	if strings.Contains(m.Content, "beans") {
-		// Get our message!
-		message := gimmeBeans(m.Author.Mention())
-
-		// Now lets Send our bean!
-		_, err := s.ChannelMessageSend(m.ChannelID, message.String())
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
 }
