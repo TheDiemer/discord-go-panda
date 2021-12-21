@@ -6,6 +6,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const triggerChar = "."
+
 func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Ignore anything said by the bot
 	if m.Author.ID == s.State.User.ID {
@@ -19,7 +21,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, msg.String())
 		return
 	}
-	if string(args[0][0]) == "." {
+	if string(args[0][0]) == triggerChar {
 		switch string(args[0][1:]) {
 		case "beans":
 			message := GimmeBeans(m.Author.Mention())
