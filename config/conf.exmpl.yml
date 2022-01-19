@@ -4,11 +4,11 @@ discord:
   send_time: "16"
   owner: "DISCORD_USER_ID"
   guild: "DISCORD_GUILD_ID"
+  self: "DISCORD_BOT_USER_ID"
+  trigger: "TRIGGER_CHARACTER"
 
 # Database Configurations
 database:
   ip: "localhost"
   db_username: "DB_MASTER_USERNAME"
   db_password: "DB_MASTER_PASSWORD"
-  dl_username: "ALT_DB_USERNAME"
-  dl_password: "ALT_DB_PASSWORD"

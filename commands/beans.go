@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"math/rand"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func gimmeBeans(user string) (beans strings.Builder) {
+func GimmeBeans(user string) (beans strings.Builder) {
 	// Define the slice(array) of bean urls
 	urls := []string{"https://farm1.static.flickr.com/224/509478598_606e6a436d_o.jpg", "https://i.redd.it/bcykiuff3lz41.jpg", "https://i.redd.it/ne6jt50jwra61.jpg", "https://i.imgur.com/BmrdLMr.jpg"}
 	// Go get ONE url, randomly
