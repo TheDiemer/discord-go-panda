@@ -17,7 +17,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Get the Arguments
 	args := strings.Split(m.Content, " ")
 	if len(args) < 1 {
-		msg := errorMessage("Command missing", "For a list of commands type .help")
+		msg := ErrorMessage("Command missing", "For a list of commands type .help")
 		s.ChannelMessageSend(m.ChannelID, msg.String())
 		return
 	}
@@ -43,8 +43,8 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				var msg strings.Builder
 				var dm strings.Builder
 				if len(args) < 2 {
-					msg = errorMessage("Command missing", "For a list of commands type .help")
-					dm = errorMessage("Command missing", "For a list of commands type .help")
+					msg = ErrorMessage("Command missing", "For a list of commands type .help")
+					dm = ErrorMessage("Command missing", "For a list of commands type .help")
 				} else {
 					msg, dm = Attendance(args[1], m.Author.Mention())
 				}
@@ -59,7 +59,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 					}
 				}
 			default:
-				msg := errorMessage("Invalid channel", "This command is only available in #dnd (use) or #bots (testing).")
+				msg := ErrorMessage("Invalid channel", "This command is only available in #dnd (use) or #bots (testing).")
 				_, err := s.ChannelMessageSend(m.ChannelID, msg.String())
 				if err != nil {
 					fmt.Println(err)
@@ -67,7 +67,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 		default:
-			msg := errorMessage("Invalid command", "For a list of commands type .help")
+			msg := ErrorMessage("Invalid command", "For a list of commands type .help")
 			_, err := s.ChannelMessageSend(m.ChannelID, msg.String())
 			if err != nil {
 				fmt.Println(err)

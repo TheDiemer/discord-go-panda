@@ -2,7 +2,7 @@ package slash
 
 import (
 	"fmt"
-//	"github.com/TheDiemer/discord-go-panda/commands"
+	"github.com/TheDiemer/discord-go-panda/commands"
 	"github.com/TheDiemer/discord-go-panda/config"
 	"github.com/bwmarrin/discordgo"
 //	"strconv"
@@ -12,6 +12,8 @@ import (
 var conf config.Config
 var err error
 var dndChannels []string
+var transmutation []string
+var mesegea []string
 
 func init() {
 	// Putting this here for now, but commented out till we actually need it
@@ -25,63 +27,65 @@ func init() {
 	dndChannels = append(dndChannels, "655092075389517894")
 	// This is #dnd, which is the PRIMARY intended target
 	dndChannels = append(dndChannels, "654446991912206346")
+	transmutation = []string{"Tisi", "Ptrosk", "Baldrick", "Ikol", "Avu", "Red Staché"}
+	mesegea = []string{"Adelvir", "Akta", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
 }
 
-func isRole(guild string, author string, role string, s *discordgo.Session) (is bool) {
-	member, err := s.State.Member(guild, author)
-	if err != nil {
-		fmt.Println(err)
-		if member, err = s.GuildMember(guild, author); err != nil {
-			fmt.Println(err)
-			is = false
-		} else {
-			fmt.Println(err)
-			for _, roleID := range member.Roles {
-				if roleID == role {
-					is = true
-				}
-			}
-		}
-	} else {
-		for _, roleID := range member.Roles {
-			if roleID == role {
-				is = true
-			}
-		}
-	}
-	return
-}
+// func isRole(guild string, author string, role string, s *discordgo.Session) (is bool) {
+// 	member, err := s.State.Member(guild, author)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		if member, err = s.GuildMember(guild, author); err != nil {
+// 			fmt.Println(err)
+// 			is = false
+// 		} else {
+// 			fmt.Println(err)
+// 			for _, roleID := range member.Roles {
+// 				if roleID == role {
+// 					is = true
+// 				}
+// 			}
+// 		}
+// 	} else {
+// 		for _, roleID := range member.Roles {
+// 			if roleID == role {
+// 				is = true
+// 			}
+// 		}
+// 	}
+// 	return
+// }
 
-func who(s *discordgo.Session, id string, name string) (mention string) {
-	users, _ := s.GuildMembers(id, "0", 1000)
-	for _, member := range users {
-		mention = member.User.Username
-		if mention == name {
-			mention = member.Mention()
-			return
-		}
-	}
-	mention = name
-	return
-}
+// func who(s *discordgo.Session, id string, name string) (mention string) {
+// 	users, _ := s.GuildMembers(id, "0", 1000)
+// 	for _, member := range users {
+// 		mention = member.User.Username
+// 		if mention == name {
+// 			mention = member.Mention()
+// 			return
+// 		}
+// 	}
+// 	mention = name
+// 	return
+// }
 
-func handle(part1 string, part2 string) string {
-	var combined strings.Builder
-	tmp := strings.Fields(part1)
-	tmp2 := strings.Fields(part2)
-	// things
-	for _, word := range tmp {
-		combined.WriteString(word)
-		combined.WriteString(" ")
-	}
-	for i, word := range tmp2 {
-		combined.WriteString(word)
-		if i < len(tmp) {
-			combined.WriteString(" ")
-		}
-	}
-	return combined.String()
-}
+// func handle(part1 string, part2 string) string {
+// 	var combined strings.Builder
+// 	tmp := strings.Fields(part1)
+// 	tmp2 := strings.Fields(part2)
+// 	// things
+// 	for _, word := range tmp {
+// 		combined.WriteString(word)
+// 		combined.WriteString(" ")
+// 	}
+// 	for i, word := range tmp2 {
+// 		combined.WriteString(word)
+// 		if i < len(tmp) {
+// 			combined.WriteString(" ")
+// 		}
+// 	}
+// 	return combined.String()
+// }
 
 func channelCheck(channel string, approvedList []string) (approved bool) {
 	approved = false
@@ -174,7 +178,7 @@ var (
 //		},
 		{
 			Name:        "rollcall",
-			Description: "Check in with the players of a given campaign. We assume a Wednesday playday, so this just asks about the week and lists the players.",
+			Description: "Check in with the players of a given campaign.",
 			Type:        discordgo.ChatApplicationCommand,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
@@ -203,18 +207,83 @@ var (
 func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
+		data := i.ApplicationCommandData()
+		var info strings.Builder
 		if channelCheck(i.ChannelID, dndChannels) {
-			data := i.ApplicationCommandData()
-			// Privately ack the input
-			var msgformat strings.Builder
-			msgformat.WriteString("I understood that you want to call rollcall for **")
-			msgformat.WriteString(data.Options[0].StringValue())
-			msgformat.WriteString("'s** campaign")
+			if data.Options[0].StringValue() == "transmutation" {
+				// Privately ack the input
+				var msgformat strings.Builder
+				msgformat.WriteString("I understood that you want to call rollcall for the **")
+				msgformat.WriteString(data.Options[0].StringValue())
+				msgformat.WriteString("** campaign. One sec...")
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Flags:   1 << 6,
+						Content: msgformat.String(),
+					},
+				})
+				info.WriteString("Hey, <@&654763072828997642>! Who of ")
+				for i, person := range transmutation {
+					info.WriteString(person)
+					if i == len(transmutation)-2 {
+						info.WriteString(", and ")
+					} else if i < len(transmutation)-2 {
+						info.WriteString(", ")
+					}
+				}
+				info.WriteString(" will come to the call this week?")
+				s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+					Content: info.String(),
+				})
+			} else if data.Options[0].StringValue() == "mesegea" {
+				// Privately ack the input
+				var msgformat strings.Builder
+				msgformat.WriteString("I understood that you want to call rollcall for the **")
+				msgformat.WriteString(data.Options[0].StringValue())
+				msgformat.WriteString("** campaign! One sec...")
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Flags:   1 << 6,
+						Content: msgformat.String(),
+					},
+				})
+				info.WriteString("Hey, <@&654763072828997642>! Who of ")
+				for i, person := range mesegea {
+					info.WriteString(person)
+					if i == len(mesegea)-2 {
+						info.WriteString(", and ")
+					} else if i < len(mesegea)-2 {
+						info.WriteString(", ")
+					}
+				}
+				info.WriteString(" will come to the call this week?")
+				s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+					Content: info.String(),
+				})
+			} else {
+				info.WriteString("\nUnfortunately, `")
+				info.WriteString(data.Options[0].StringValue())
+				info.WriteString("` is not a valid option for campaigns!\nI can't ping players I don't know about!")
+				message := commands.ErrorMessage("Rollcall Error", info.String())
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Flags:   1 << 6,
+						Content: message.String(),
+					},
+				})
+			}
+		} else {
+			var info strings.Builder
+			info.WriteString("\nUnfortunately, `rollcall` can only be run in `#dnd` to prevent unnecessary noise.")
+			message := commands.ErrorMessage("Invalid Channel", info.String())
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
 					Flags:   1 << 6,
-					Content: msgformat.String(),
+					Content: message.String(),
 				},
 			})
 		}
