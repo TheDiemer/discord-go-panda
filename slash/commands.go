@@ -62,6 +62,19 @@ var (
 			},
 		},
 		{
+			Name:        "randomsong",
+			Description: "Get a random song url.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
+		{
 			Name:        "rollcall",
 			Description: "Check in with the players of a given campaign.",
 			Type:        discordgo.ChatApplicationCommand,
@@ -77,10 +90,56 @@ var (
 		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		"musiclink": handleMusicLink,
-		"rollcall":  handleRollcall,
+		"musiclink":  handleMusicLink,
+		"rollcall":   handleRollcall,
+		"randomsong": handleRandomSong,
 	}
 )
+
+func handleRandomSong(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	var msgformat strings.Builder
+	msgformat.WriteString("I understood that you want a random song! Gimme a sec...")
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
+	})
+	var private bool
+	if len(i.ApplicationCommandData().Options) > 0 {
+		private = i.ApplicationCommandData().Options[0].BoolValue()
+	} else {
+		private = false
+	}
+	song, err := GetSong()
+	fmt.Println("song link is:", song)
+	if err != nil {
+		fmt.Println("error is:", err.Error())
+	}
+	if err != nil {
+		message := commands.ErrorMessage("Random Song Failed", err.Error())
+		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+			Flags:   1 << 6,
+			Content: message.String(),
+		})
+		// problems
+	} else {
+		message := commands.SuccessMessage("Random Song Chosen", song)
+		fmt.Println(message.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: message.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: message.String(),
+			})
+		}
+
+	}
+}
 
 func handleMusicLink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var link string
@@ -109,7 +168,7 @@ func handleMusicLink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Content: msgformat.String(),
 		},
 	})
-	success, info := SongLink(link)
+	success, info := GetSongLink(link)
 	if success {
 		message := commands.SuccessMessage("Song Converted", info.String())
 		if private {

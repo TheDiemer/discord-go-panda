@@ -8,36 +8,7 @@ import (
 	"strings"
 )
 
-type Response struct {
-	EntityUniqueID     string             `json:"entityUniqueId"`
-	UserCountry        string             `json:"userCountry"`
-	PageUrl            string             `json:"pageUrl"`
-	EntitiesByUniqueID EntitiesByUniqueID `json:"entitiesByUniqueId"`
-	LinksByPlatform    LinksByPlatform    `json:"linksByPlatform"`
-}
-
-type EntitiesByUniqueID struct {
-	ID             string     `json:"id"`
-	Type           string     `json:"type"`
-	Title          string     `json:"title"`
-	ArtistName     string     `json:"artistName"`
-	ThumbnailUrl   string     `json:"thumbnailUrl"`
-	ThumbnailWidth string     `json:"thumbnailWidth"`
-	ApiProvider    string     `json:"apiProvider"`
-	Platforms      []struct{} `json:"platforms"`
-}
-
-type LinksByPlatform struct {
-	Platform Platform
-}
-
-type Platform struct {
-	Country        string `json:"country"`
-	Url            string `json:"url"`
-	EntityUniqueID string `json:"entityUniqueId"`
-}
-
-func SongLink(link string) (success bool, info strings.Builder) {
+func GetSongLink(link string) (success bool, info strings.Builder) {
 	myUrl := "https://api.song.link/v1-alpha.1/links?url="
 	myUrl += url.PathEscape(link)
 	myUrl += "&userCountry=US"
@@ -62,7 +33,7 @@ func SongLink(link string) (success bool, info strings.Builder) {
 			info.WriteString("Error occurred reading the response: ")
 			info.WriteString(err.Error())
 		}
-		var plat Response
+		var plat SongLink
 		json.Unmarshal([]byte(string(body)), &plat)
 		success = true
 		info.WriteString(plat.PageUrl)
