@@ -14,6 +14,28 @@ var dndChannels []string
 var transmutation []string
 var mesegea []string
 
+func trimLeftChars(s string, n int) string {
+	m := 0
+	for i := range s {
+		if m >= n {
+			return s[i:]
+		}
+		m++
+	}
+	return s[:0]
+}
+
+func dndMessage(data string, name string) (message strings.Builder) {
+	tmpSplit := strings.Split(data, " ")
+	message.WriteString("\n")
+	message.WriteString(name)
+	message.WriteString(" for the ")
+	message.WriteString(tmpSplit[0])
+	message.WriteString(" campaign: ")
+	message.WriteString(tmpSplit[1])
+	return
+}
+
 func init() {
 	// Putting this here for now, but commented out till we actually need it
 	// So we can get variables as necessary
@@ -88,13 +110,223 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "dnd",
+			Description: "Commands for playing D&D!",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:         discordgo.ApplicationCommandOptionString,
+					Name:         "notes",
+					Description:  "Which campaign notes do you want?",
+					Required:     false,
+					Autocomplete: true,
+				},
+				{
+					Type:         discordgo.ApplicationCommandOptionString,
+					Name:         "website",
+					Description:  "Which campaign site do you want?",
+					Required:     false,
+					Autocomplete: true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"musiclink":  handleMusicLink,
 		"rollcall":   handleRollcall,
 		"randomsong": handleRandomSong,
+		"dnd":        handleDnd,
 	}
 )
+
+func handleDnd(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	switch i.Type {
+	case discordgo.InteractionApplicationCommand:
+		data := i.ApplicationCommandData()
+		var private bool
+		var message strings.Builder
+		private = false
+		switch tmp := len(data.Options); {
+		case tmp == 1:
+			switch data.Options[0].Name {
+			case "notes", "website":
+				temporary := dndMessage(data.Options[0].StringValue(), data.Options[0].Name)
+				message.WriteString(temporary.String())
+			case "private":
+				private = data.Options[0].BoolValue()
+				message.WriteString("\n")
+				tmpMsg := commands.ErrorMessage("Invalid Command", "\nYou gotta choose what data you want!")
+				message.WriteString(tmpMsg.String())
+			}
+		case tmp == 2:
+			switch data.Options[0].Name {
+			case "notes", "website":
+				temporary := dndMessage(data.Options[0].StringValue(), data.Options[0].Name)
+				message.WriteString(temporary.String())
+			case "private":
+				private = data.Options[0].BoolValue()
+			}
+			switch data.Options[1].Name {
+			case "notes", "website":
+				temporary := dndMessage(data.Options[1].StringValue(), data.Options[1].Name)
+				message.WriteString(temporary.String())
+			case "private":
+				private = data.Options[1].BoolValue()
+			}
+		case tmp == 3:
+			switch data.Options[0].Name {
+			case "notes", "website":
+				temporary := dndMessage(data.Options[0].StringValue(), data.Options[0].Name)
+				message.WriteString(temporary.String())
+			case "private":
+				private = data.Options[0].BoolValue()
+			}
+			switch data.Options[1].Name {
+			case "notes", "website":
+				temporary := dndMessage(data.Options[1].StringValue(), data.Options[1].Name)
+				message.WriteString(temporary.String())
+			case "private":
+				private = data.Options[1].BoolValue()
+			}
+			switch data.Options[2].Name {
+			case "notes", "website":
+				temporary := dndMessage(data.Options[2].StringValue(), data.Options[2].Name)
+				message.WriteString(temporary.String())
+			case "private":
+				private = data.Options[2].BoolValue()
+			}
+		}
+		// we need to get rid of that very first newline...we just..don't need it
+		var info string
+		info = trimLeftChars(message.String(), 1)
+		if private {
+			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags:   1 << 6,
+					Content: info,
+				},
+			})
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: info,
+				},
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+	case discordgo.InteractionApplicationCommandAutocomplete:
+		data := i.ApplicationCommandData()
+		var choices []*discordgo.ApplicationCommandOptionChoice
+		notes := []*discordgo.ApplicationCommandOptionChoice{
+			{
+				Name:  "noodles",
+				Value: "Transmutation https://docs.google.com/document/d/1Gzav6DrOHzDGi_KgIzgDIxX9BkxnKToRwvY6amkowkA/edit",
+			},
+			{
+				Name:  "Transmutation",
+				Value: "Transmutation https://docs.google.com/document/d/1Gzav6DrOHzDGi_KgIzgDIxX9BkxnKToRwvY6amkowkA/edit",
+			},
+			{
+				Name:  "jonesin",
+				Value: "Mesegea https://docs.google.com/document/d/1mYEV4mF_Xxabe4AU1cEEjaH0HnDyFa882NiOoXXhW80/edit",
+			},
+			{
+				Name:  "tropolis",
+				Value: "Mesegea https://docs.google.com/document/d/1mYEV4mF_Xxabe4AU1cEEjaH0HnDyFa882NiOoXXhW80/edit",
+			},
+			{
+				Name:  "mesegea",
+				Value: "Mesegea https://docs.google.com/document/d/1mYEV4mF_Xxabe4AU1cEEjaH0HnDyFa882NiOoXXhW80/edit",
+			},
+		}
+		sites := []*discordgo.ApplicationCommandOptionChoice{
+			{
+				Name:  "noodles",
+				Value: "Transmutation https://wiki.noodles.ninja/doku.php?id=start",
+			},
+			{
+				Name:  "Transmutation",
+				Value: "Transmutation https://wiki.noodles.ninja/doku.php?id=start",
+			},
+			{
+				Name:  "jonesin",
+				Value: "Mesegea https://ericdiemerjones.com/dnd/",
+			},
+			{
+				Name:  "tropolis",
+				Value: "Mesegea https://ericdiemerjones.com/dnd/",
+			},
+			{
+				Name:  "mesegea",
+				Value: "Mesegea https://ericdiemerjones.com/dnd/",
+			},
+		}
+		switch tmp := len(data.Options); {
+		case tmp == 1:
+			switch data.Options[0].Name {
+			case "notes":
+				choices = notes
+			case "website":
+				choices = sites
+			}
+		case tmp == 2:
+			switch data.Options[0].Name {
+			case "notes":
+				choices = notes
+			case "website":
+				choices = sites
+			}
+			switch data.Options[1].Name {
+			case "notes":
+				choices = notes
+			case "website":
+				choices = sites
+			}
+		case tmp == 3:
+			switch data.Options[0].Name {
+			case "notes":
+				choices = notes
+			case "website":
+				choices = sites
+			}
+			switch data.Options[1].Name {
+			case "notes":
+				choices = notes
+			case "website":
+				choices = sites
+			}
+			switch data.Options[2].Name {
+			case "notes":
+				choices = notes
+			case "website":
+				choices = sites
+			}
+		}
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+			Data: &discordgo.InteractionResponseData{
+				Choices: choices,
+			},
+		})
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
 func handleRandomSong(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var msgformat strings.Builder
@@ -307,12 +539,4 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			panic(err)
 		}
 	}
-
-	//} else {
-	//	message := commands.ErrorMessage("Deletion Failed", info.String())
-	//	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-	//		Flags:   1 << 6,
-	//		Content: message.String(),
-	//	})
-	//}
 }
