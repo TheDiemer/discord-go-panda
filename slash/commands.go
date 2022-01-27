@@ -137,14 +137,125 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "alias",
+			Description: "Setup an alias for a user.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "og-nick",
+					Description: "What is the name you want to receive karma?",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "alias",
+					Description: "What is the alias you want to apply to the og nick?",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"musiclink":  handleMusicLink,
 		"rollcall":   handleRollcall,
 		"randomsong": handleRandomSong,
 		"dnd":        handleDnd,
+		"alias":      handleAlias,
 	}
 )
+
+func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var nick string
+	var alias string
+	var private bool
+	private = false
+	if len(data.Options) > 2 {
+		switch data.Options[0].Name {
+		case "og-nick":
+			nick = data.Options[0].StringValue()
+		case "alias":
+			alias = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+		switch data.Options[1].Name {
+		case "og-nick":
+			nick = data.Options[1].StringValue()
+		case "alias":
+			alias = data.Options[1].StringValue()
+		case "private":
+			private = data.Options[1].BoolValue()
+		}
+		switch data.Options[2].Name {
+		case "og-nick":
+			nick = data.Options[2].StringValue()
+		case "alias":
+			alias = data.Options[2].StringValue()
+		case "private":
+			private = data.Options[2].BoolValue()
+		}
+	} else {
+		switch data.Options[0].Name {
+		case "og-nick":
+			nick = data.Options[0].StringValue()
+			alias = data.Options[1].StringValue()
+		case "alias":
+			alias = data.Options[0].StringValue()
+			nick = data.Options[1].StringValue()
+		}
+	}
+	// Privately ack the input
+	var msgformat strings.Builder
+	msgformat.WriteString("I understood that you want to create a new alias!\nYou think that `")
+	msgformat.WriteString(nick)
+	msgformat.WriteString("` should be called `")
+	msgformat.WriteString(alias)
+	msgformat.WriteString("`!\nI'll go work on that, just hang tight!")
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
+	})
+	fmt.Printf("I'm testing this command's input collection.\nnick: %s\nalias: %s\nprivate: %v\n", nick, alias, private)
+	info, err := Alias(nick, alias)
+	var response strings.Builder
+	if err != nil {
+		response = commands.ErrorMessage("Error Creating Alias", info.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: response.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: response.String(),
+			})
+		}
+	} else {
+		response = commands.SuccessMessage("Alias Created", info.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: response.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: response.String(),
+			})
+		}
+	}
+}
 
 func handleDnd(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
