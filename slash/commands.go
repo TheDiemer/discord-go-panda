@@ -6,6 +6,7 @@ import (
 	"github.com/TheDiemer/discord-go-panda/config"
 	"github.com/bwmarrin/discordgo"
 	"strings"
+	"time"
 )
 
 var conf config.Config
@@ -423,6 +424,11 @@ func handleMusicLink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 }
 
 func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	var checkMsg strings.Builder
+	checkMsg.WriteString("<:yee:707604728724324382> = Yee\n")
+	checkMsg.WriteString("<:megusta:775469871454486549> = ProbablYee\n")
+	checkMsg.WriteString("<:wolo:789952118739042334> = MabYee\n")
+	checkMsg.WriteString("<:nooo:846428536939741244> = NYee")
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
@@ -441,7 +447,7 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						Content: msgformat.String(),
 					},
 				})
-				info.WriteString("Hey, <@&654763072828997642>! Who of ")
+				info.WriteString("Hey, <&@654763072828997642>! Who of ")
 				for i, person := range transmutation {
 					info.WriteString(person)
 					if i == len(transmutation)-2 {
@@ -451,9 +457,24 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					}
 				}
 				info.WriteString(" will come to the call this week?")
-				s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-					Content: info.String(),
-				})
+				embed := &discordgo.MessageEmbed{
+					Author:      &discordgo.MessageEmbedAuthor{},
+					Color:       0x00ff00, //green
+					Description: info.String(),
+					Fields: []*discordgo.MessageEmbedField{
+						&discordgo.MessageEmbedField{
+							Name:   "Can you make it?",
+							Value:  checkMsg.String(),
+							Inline: true,
+						},
+					},
+					Timestamp: time.Now().Format(time.RFC3339),
+					Title:     "Roll Calllllll",
+				}
+				s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				// s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				// 	Content: info.String(),
+				// })
 			} else if data.Options[0].StringValue() == "mesegea" {
 				// Privately ack the input
 				var msgformat strings.Builder
@@ -467,7 +488,7 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						Content: msgformat.String(),
 					},
 				})
-				info.WriteString("Hey, <@&654763072828997642>! Who of ")
+				info.WriteString("Hey, <&@654763072828997642>! Who of ")
 				for i, person := range mesegea {
 					info.WriteString(person)
 					if i == len(mesegea)-2 {
@@ -477,9 +498,24 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					}
 				}
 				info.WriteString(" will come to the call this week?")
-				s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-					Content: info.String(),
-				})
+				embed := &discordgo.MessageEmbed{
+					Author:      &discordgo.MessageEmbedAuthor{},
+					Color:       0x00ff00, //green
+					Description: info.String(),
+					Fields: []*discordgo.MessageEmbedField{
+						&discordgo.MessageEmbedField{
+							Name:   "Can you make it?",
+							Value:  checkMsg.String(),
+							Inline: true,
+						},
+					},
+					Timestamp: time.Now().Format(time.RFC3339),
+					Title:     "Roll Calllllll",
+				}
+				s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				// s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				// 	Content: info.String(),
+				// })
 			} else {
 				info.WriteString("\nUnfortunately, `")
 				info.WriteString(data.Options[0].StringValue())
