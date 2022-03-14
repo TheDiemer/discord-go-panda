@@ -227,8 +227,7 @@ func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Content: msgformat.String(),
 		},
 	})
-	fmt.Printf("I'm testing this command's input collection.\nnick: %s\nalias: %s\nprivate: %v\n", nick, alias, private)
-	info, err := Alias(nick, alias)
+	info, err := Alias(nick, alias, conf)
 	var response strings.Builder
 	if err != nil {
 		response = commands.ErrorMessage("Error Creating Alias", info.String())
