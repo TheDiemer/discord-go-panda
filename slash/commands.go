@@ -429,6 +429,15 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	checkMsg.WriteString("<:megusta:775469871454486549> = ProbablYee\n")
 	checkMsg.WriteString("<:wolo:789952118739042334> = MabYee\n")
 	checkMsg.WriteString("<:nooo:846428536939741244> = NYee")
+	var mydudes string
+	tmp, _ := s.GuildRoles(conf.Discord.Guild)
+
+	for _, role := range(tmp) {
+		if role.ID == "654763072828997642" {
+			mydudes = role.Mention()
+		}
+	}
+
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
@@ -447,7 +456,17 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						Content: msgformat.String(),
 					},
 				})
-				info.WriteString("Hey, <&@654763072828997642>! Who of ")
+				// This is to ping the role!
+				var tmp strings.Builder
+				tmp.WriteString("Hey, ")
+				tmp.WriteString(mydudes)
+				tmp.WriteString("!")
+				_, err := s.ChannelMessageSend(i.ChannelID, tmp.String())
+				if err != nil {
+					fmt.Println(err)
+				}
+				// Now for the content of names!
+				info.WriteString("Who of ")
 				for i, person := range transmutation {
 					info.WriteString(person)
 					if i == len(transmutation)-2 {
@@ -459,8 +478,9 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				info.WriteString(" will come to the call this week?")
 				embed := &discordgo.MessageEmbed{
 					Author:      &discordgo.MessageEmbedAuthor{},
-					Color:       0x00ff00, //green
+					Color:       0xC73032, //DDB Red
 					Description: info.String(),
+					Type:        "rich",
 					Fields: []*discordgo.MessageEmbedField{
 						&discordgo.MessageEmbedField{
 							Name:   "Can you make it?",
@@ -472,9 +492,6 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Title:     "Roll Calllllll",
 				}
 				s.ChannelMessageSendEmbed(i.ChannelID, embed)
-				// s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				// 	Content: info.String(),
-				// })
 			} else if data.Options[0].StringValue() == "mesegea" {
 				// Privately ack the input
 				var msgformat strings.Builder
@@ -488,7 +505,17 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 						Content: msgformat.String(),
 					},
 				})
-				info.WriteString("Hey, <&@654763072828997642>! Who of ")
+				// This is to ping the role!
+				var tmp strings.Builder
+				tmp.WriteString("Hey, ")
+				tmp.WriteString(mydudes)
+				tmp.WriteString("!")
+				_, err := s.ChannelMessageSend(i.ChannelID, tmp.String())
+				if err != nil {
+					fmt.Println(err)
+				}
+				// Now for the content of names!
+				info.WriteString("Who of ")
 				for i, person := range mesegea {
 					info.WriteString(person)
 					if i == len(mesegea)-2 {
@@ -500,22 +527,25 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				info.WriteString(" will come to the call this week?")
 				embed := &discordgo.MessageEmbed{
 					Author:      &discordgo.MessageEmbedAuthor{},
-					Color:       0x00ff00, //green
+					Color:       0xC73032, //DDB Red
 					Description: info.String(),
+					Type:        "rich",
 					Fields: []*discordgo.MessageEmbedField{
 						&discordgo.MessageEmbedField{
 							Name:   "Can you make it?",
 							Value:  checkMsg.String(),
 							Inline: true,
 						},
+						&discordgo.MessageEmbedField{
+							Name:   "Recap:",
+							Value:  "https://ericdiemerjones.com/dnd/last",
+							Inline: false,
+						},
 					},
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
 				s.ChannelMessageSendEmbed(i.ChannelID, embed)
-				// s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				// 	Content: info.String(),
-				// })
 			} else {
 				info.WriteString("\nUnfortunately, `")
 				info.WriteString(data.Options[0].StringValue())
