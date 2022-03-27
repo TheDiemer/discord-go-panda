@@ -2,18 +2,18 @@ package slash
 
 import (
 	"fmt"
-	"strings"
+	"github.com/TheDiemer/discord-go-panda/config"
 	"github.com/forPelevin/gomoji"
 	"github.com/go-mysql-org/go-mysql/client"
 	"github.com/go-mysql-org/go-mysql/mysql"
-	"github.com/TheDiemer/discord-go-panda/config"
+	"strings"
 )
 
 func DeEmoji(sentence string) (replaced strings.Builder) {
 	if gomoji.ContainsEmoji(sentence) {
 		words := strings.Split(sentence, " ")
 		for i, word := range words {
-			info , err := gomoji.GetInfo(word)
+			info, err := gomoji.GetInfo(word)
 			if err == nil {
 				// This is the condition that means the word was an emoji
 				replaced.WriteString(info.Slug)
@@ -42,8 +42,10 @@ func Alias(nick string, alias string, conf config.Config) (info strings.Builder,
 	command.WriteString("select * from alias where alias = '")
 	command.WriteString(alias)
 	command.WriteString("';")
-	response, tmpErr := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "karma", command.String())
-	if len(response.Values) > 0 || tmpErr != nil {
+	// response, tmpErr := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "karma", command.String())
+	response, err := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "karma", command.String())
+	fmt.Println(response.Values)
+	if len(response.Values) > 0 || err != nil {
 		// we got a person back, meaning that alias is in use, or there was an issue with the command itself
 		if len(response.Values) > 0 {
 			tmp, _ := response.GetStringByName(0, "person")
@@ -53,10 +55,11 @@ func Alias(nick string, alias string, conf config.Config) (info strings.Builder,
 			info.WriteString("`!")
 		} else {
 			info.WriteString("\nAn error occurred while reading the current values:\n`")
-			info.WriteString(tmpErr.Error())
+			info.WriteString(err.Error())
 			info.WriteString("`")
 		}
 	} else {
+		fmt.Println("newest here")
 		// either no error AND no people, so lets store this alias
 		var writeCommand strings.Builder
 		writeCommand.WriteString("INSERT INTO alias values('")
@@ -81,17 +84,20 @@ func Alias(nick string, alias string, conf config.Config) (info strings.Builder,
 }
 
 // This is to GET data out of the DB, aka read only
-func dbGet(ip string, username string, password string, table string, command string) (response mysql.Result, err error) {
+func dbGet(ip string, username string, password string, table string, command string) (response *mysql.Result, err error) {
 	var conn *client.Conn
 	conn, err = client.Connect(ip, username, password, table)
 	if err != nil {
 		return
 	}
-	conn.Ping()
-	r, tmpErr := conn.Execute(command)
-	defer r.Close()
-	if tmpErr != nil {
-		err = tmpErr
+	response, err = conn.Execute(command)
+	fmt.Println("IM HERE1:")
+	fmt.Println(len(response.Values))
+	fmt.Println("still HERE")
+	if err != nil {
+		fmt.Println("IM HERE2:")
+		fmt.Println(err)
+		fmt.Println("IM HERE3:")
 	}
 	return
 }
