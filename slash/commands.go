@@ -542,7 +542,7 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var mydudes string
 	tmp, _ := s.GuildRoles(conf.Discord.Guild)
 
-	for _, role := range(tmp) {
+	for _, role := range tmp {
 		if role.ID == "654763072828997642" {
 			mydudes = role.Mention()
 		}
