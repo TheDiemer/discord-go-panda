@@ -229,7 +229,6 @@ func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	info, err := Alias(nick, alias, conf)
-	fmt.Println(info.String())
 	var response strings.Builder
 	if err != nil {
 		response = commands.ErrorMessage("Error Creating Alias", info.String())
