@@ -33,8 +33,8 @@ func DeEmoji(sentence string) (replaced strings.Builder) {
 	return
 }
 
-fun GetAlias(name string, conf config.Config) (info strings.Builder, err error) {
-}
+//func GetAlias(name string, conf config.Config) (info strings.Builder, err error) {
+//}
 
 func MakeAlias(nick string, alias string, conf config.Config) (info strings.Builder, err error) {
 	// the Very First thing that should be done is remove any emoji

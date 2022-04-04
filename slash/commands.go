@@ -233,38 +233,19 @@ func handleGetAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	} else {
 		switch data.Options[0].Name {
 		case "name":
-			nname = data.Options[0].StringValue()
+			name = data.Options[0].StringValue()
 			alias = data.Options[1].StringValue()
 		case "alias":
 			alias = data.Options[0].StringValue()
 			name = data.Options[1].StringValue()
 		}
 	}
-	var name string
-	var private bool
-	private = false
-	if len(data.Options) > 1 {
-		switch data.Options[0].Name {
-		case "name":
-			name = data.Options[0].StringValue()
-		case "private":
-			private = data.Options[0].BoolValue()
-		}
-		switch data.Options[1].Name {
-		case "name":
-			name = data.Options[1].StringValue()
-		case "private":
-			private = data.Options[1].BoolValue()
-		}
-	} else {
-		name = data.Options[0].StringValue()
-	}
 	// Privately ack the input
 	var msgformat strings.Builder
 	msgformat.WriteString("I understood that you want to either find all of the alias for the name `")
-	msgformat.WriteString(nick)
-	msgformat.WriteString("` or you want to know the name behind the alias `")
 	msgformat.WriteString(name)
+	msgformat.WriteString("` or you want to know the name behind the alias `")
+	msgformat.WriteString(alias)
 	msgformat.WriteString("`!\nI'll go work on that, just hang tight!")
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -273,33 +254,34 @@ func handleGetAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Content: msgformat.String(),
 		},
 	})
-	info, err := GetAlias(name, conf)
-	var response strings.Builder
-	if err != nil {
-		response = commands.ErrorMessage("Error Creating Alias", info.String())
-		if private {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: response.String(),
-			})
-		} else {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: response.String(),
-			})
-		}
-	} else {
-		response = commands.SuccessMessage("Alias Created", info.String())
-		if private {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: response.String(),
-			})
-		} else {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: response.String(),
-			})
-		}
-	}
+	fmt.Println(private)
+	// info, err := GetAlias(name, conf)
+	// var response strings.Builder
+	// if err != nil {
+	// 	response = commands.ErrorMessage("Error Creating Alias", info.String())
+	// 	if private {
+	// 		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+	// 			Flags:   1 << 6,
+	// 			Content: response.String(),
+	// 		})
+	// 	} else {
+	// 		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+	// 			Content: response.String(),
+	// 		})
+	// 	}
+	// } else {
+	// 	response = commands.SuccessMessage("Alias Created", info.String())
+	// 	if private {
+	// 		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+	// 			Flags:   1 << 6,
+	// 			Content: response.String(),
+	// 		})
+	// 	} else {
+	// 		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+	// 			Content: response.String(),
+	// 		})
+	// 	}
+	// }
 }
 
 func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
