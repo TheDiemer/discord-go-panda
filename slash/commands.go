@@ -667,6 +667,7 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	checkMsg.WriteString("<:yee:707604728724324382> = Yee\n")
 	checkMsg.WriteString("<:megusta:775469871454486549> = ProbablYee\n")
 	checkMsg.WriteString("<:wolo:789952118739042334> = MabYee\n")
+	checkMsg.WriteString("<:sus:808326972475834449> = MabNYee\n")
 	checkMsg.WriteString("<:nooo:846428536939741244> = NYee")
 	var mydudes string
 	tmp, _ := s.GuildRoles(conf.Discord.Guild)
