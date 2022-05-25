@@ -207,7 +207,7 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if err != nil {
 		fmt.Println("error is: ", err.Error())
 	} else {
-		fmt.Println("wiki entry is: ", wiki.Title)
+		fmt.Println("wiki entry is: ", wiki)
 	}
 	if err != nil {
 		message := commands.ErrorMessage("Random Wiki Failed", err.Error())
@@ -217,8 +217,10 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 		// problems
 	} else {
+		
 		if private {
-			message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: "+wiki.ContentURLs.Desktop.Page)
+			// message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: "+wiki.ContentURLs.Desktop.Page)
+			message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: ")
 			fmt.Println(message.String())
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Flags:   1 << 6,
@@ -236,11 +238,11 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Description: wiki.Extract,
 				Type:        "rich",
 				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
-						Name:   "url",
-						Value:  wiki.ContentURLs.Desktop.Page,
-						Inline: true,
-					},
+					// &discordgo.MessageEmbedField{
+					// 	Name:   "url",
+					// 	Value:  wiki.ContentURLs.Desktop.Page,
+					// 	Inline: true,
+					// },
 				},
 				Timestamp: time.Now().Format(time.RFC3339),
 				Title:     wiki.Title,
