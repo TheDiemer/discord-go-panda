@@ -230,7 +230,7 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			message := "Successfully collected a random wiki page!"
 			fmt.Println(message)
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: message.String(),
+				Content: message,
 			})
 			embed := &discordgo.MessageEmbed{
 				Author:      &discordgo.MessageEmbedAuthor{},
