@@ -46,8 +46,8 @@ type OriginalImage struct {
 }
 
 type WikiURLs struct {
-	Desktop []URLs `json:""`
-	Mobile  []URLs `json:""`
+	Desktop []URLs `json:"desktop"`
+	Mobile  []URLs `json:"mobile"`
 }
 
 type URLs struct {
