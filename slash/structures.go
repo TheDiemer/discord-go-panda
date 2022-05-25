@@ -17,7 +17,7 @@ type Wiki struct {
 	Timestamp         string          `json:"timestamp"`
 	Description       string          `json:"description"`
 	DescriptionSource string          `json:"description_source"`
-	ContentURLs       []WikiURLS      `json:"content_urls"`
+	ContentURLs       []WikiURLs      `json:"content_urls"`
 	Extract           string          `json:"extract"`
 	ExtractHTML       string          `json:"extract_html"`
 }
