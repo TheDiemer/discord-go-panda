@@ -1,5 +1,62 @@
 package slash
 
+type Wiki struct {
+	Type              string          `json:"type"`
+	Title             string          `json:"title"`
+	DisplayTitle      string          `json:"displaytitle"`
+	NameSpace         []Namespace     `json:"namespace"`
+	WikibaseItem      string          `json:"wikibase_item"`
+	Titles            []TitlesList    `json:"titles"`
+	PageID            int             `json:"pageid"`
+	ThumbnailInfo     []Thumbnail     `json:"thumbnail"`
+	OriginalImageInfo []OriginalImage `json:"originalimage"`
+	Lang              string          `json:"lang"`
+	Dir               string          `json:"dir"`
+	Revision          string          `json:"revision"`
+	TID               string          `json:"tid"`
+	Timestamp         string          `json:"timestamp"`
+	Description       string          `json:"description"`
+	DescriptionSource string          `json:"description_source"`
+	ContentURLs       []WikiURLS      `json:"content_urls"`
+	Extract           string          `json:"extract"`
+	ExtractHTML       string          `json:"extract_html"`
+}
+
+type Namespace struct {
+	ID   int    `json:"id"`
+	Text string `json:"text"`
+}
+
+type TitlesList struct {
+	Canonical  string `json:"canonical"`
+	Normalized string `json:"normalized"`
+	Display    string `json:"display"`
+}
+
+type Thumbnail struct {
+	Source string `json:"source"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
+type OriginalImage struct {
+	Source string `json:"source"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
+type WikiURLs struct {
+	Desktop []URLs `json:""`
+	Mobile  []URLs `json:""`
+}
+
+type URLs struct {
+	Page      string `json:"page"`
+	Revisions string `json:"revisions"`
+	Edit      string `json:"edit"`
+	Talk      string `json:"talk"`
+}
+
 type Deezer struct {
 	Data []Artist `json:"data"`
 }

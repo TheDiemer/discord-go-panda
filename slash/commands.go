@@ -66,6 +66,19 @@ func channelCheck(channel string, approvedList []string) (approved bool) {
 var (
 	Commands = []*discordgo.ApplicationCommand{
 		{
+			Name:        "randomwiki",
+			Description: "Get a random wiki entry.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
+		{
 			Name:        "musiclink",
 			Description: "Turn a song link from most platforms into a generic link.",
 			Type:        discordgo.ChatApplicationCommand,
@@ -165,6 +178,7 @@ var (
 		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"randomwiki": handleRandomWiki,
 		"musiclink":  handleMusicLink,
 		"rollcall":   handleRollcall,
 		"randomsong": handleRandomSong,
@@ -172,6 +186,52 @@ var (
 		"alias":      handleAlias,
 	}
 )
+
+func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	var msgformat strings.Builder
+	msgformat.WriteString("I understood that you want a random wiki entry! Gimme a sec...")
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
+	})
+	var private bool
+	if len(i.ApplicationCommandData().Options) > 0 {
+		private = i.ApplicationCommandData().Options[0].BoolValue()
+	} else {
+		private = false
+	}
+	wiki, err := GetWiki()
+	if err != nil {
+		fmt.Println("error is: ", err.Error())
+	} else {
+		fmt.Println("wiki entry is: ", wiki.Title)
+	}
+	if err != nil {
+		message := commands.ErrorMessage("Random Wiki Failed", err.Error())
+		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+			Flags:   1 << 6,
+			Content: message.String(),
+		})
+		// problems
+	} else {
+		message := commands.SuccessMessage(wiki.Title, wiki.Extract)
+		fmt.Println(message.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: message.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: message.String(),
+			})
+		}
+
+	}
+}
 
 func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
