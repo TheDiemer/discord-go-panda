@@ -2,16 +2,7 @@ package slash
 
 import (
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"math/rand"
-	"net/http"
-	"time"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func GetWiki() (wiki Wiki, err error) {
 	// To get our random wiki, we will just ask wikipedia for a random page!
