@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 	"github.com/bwmarrin/discordgo"
+	"strings"
 )
 
 const triggerChar = "."
@@ -37,7 +37,7 @@ func CommandsHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		case "rollcall":
 			// Lets make sure this is happening in #dnd or #bots
 			switch m.ChannelID {
-				// #dnd, #bots
+			// #dnd, #bots
 			case "654446991912206346", "655092075389517894":
 				// OKAY
 				var msg strings.Builder
