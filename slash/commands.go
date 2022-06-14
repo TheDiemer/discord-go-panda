@@ -276,6 +276,33 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Content: msgformat.String(),
 		},
 	})
+	info, err := GetQuote(id, quoted, conf)
+	var response strings.Builder
+	if err != nil {
+		response = commands.ErrorMessage("Error getting quote", info.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: response.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: response.String(),
+			})
+		}
+	} else {
+		response = commands.SuccessMessage("Quote Collected", info.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: response.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: response.String(),
+			})
+		}
+	}
 }
 
 func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
