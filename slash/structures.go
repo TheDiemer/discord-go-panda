@@ -17,7 +17,7 @@ type Wiki struct {
 	Timestamp         string          `json:"timestamp"`
 	Description       string          `json:"description"`
 	DescriptionSource string          `json:"description_source"`
-	ContentURLs       []WikiURLs      `json:"content_urls"`
+	ContentURLs       WikiURLs        `json:"content_urls"`
 	Extract           string          `json:"extract"`
 	ExtractHTML       string          `json:"extract_html"`
 }
@@ -46,11 +46,18 @@ type OriginalImage struct {
 }
 
 type WikiURLs struct {
-	Desktop []URLs `json:"desktop"`
-	Mobile  []URLs `json:"mobile"`
+	Desktop DURLs `json:"desktop"`
+	Mobile  MURLs `json:"mobile"`
 }
 
-type URLs struct {
+type DURLs struct {
+	Page      string `json:"page"`
+	Revisions string `json:"revisions"`
+	Edit      string `json:"edit"`
+	Talk      string `json:"talk"`
+}
+
+type MURLs struct {
 	Page      string `json:"page"`
 	Revisions string `json:"revisions"`
 	Edit      string `json:"edit"`

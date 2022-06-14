@@ -217,10 +217,9 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 		// problems
 	} else {
-		
+
 		if private {
-			// message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: "+wiki.ContentURLs.Desktop.Page)
-			message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: ")
+			message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: "+wiki.ContentURLs.Desktop.Page)
 			fmt.Println(message.String())
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Flags:   1 << 6,
@@ -228,7 +227,6 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			})
 		} else {
 			message := "Successfully collected a random wiki page!"
-			fmt.Println(message)
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Content: message,
 			})
@@ -238,19 +236,17 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Description: wiki.Extract,
 				Type:        "rich",
 				Fields: []*discordgo.MessageEmbedField{
-					// &discordgo.MessageEmbedField{
-					// 	Name:   "url",
-					// 	Value:  wiki.ContentURLs.Desktop.Page,
-					// 	Inline: true,
-					// },
+					&discordgo.MessageEmbedField{
+						Name:   "url",
+						Value:  wiki.ContentURLs.Desktop.Page,
+						Inline: true,
+					},
 				},
 				Timestamp: time.Now().Format(time.RFC3339),
 				Title:     wiki.Title,
 			}
+
 			s.ChannelMessageSendEmbed(i.ChannelID, embed)
-			// s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-			// 	Content: message.String(),
-			// })
 		}
 
 	}

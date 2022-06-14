@@ -9,7 +9,6 @@ func GetWiki() (wiki Wiki, err error) {
 	var randWikiURL string
 	randWikiURL = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
 
-
 	// Call the starting place and get a body back!
 	var body []byte
 	body, err = myCall(randWikiURL)

@@ -17,23 +17,23 @@ func Attendance(campaign string, author string) (msg strings.Builder, dm strings
 	case "transmutation", "noodles", "noods", "noodles'", "noods'":
 		for i, person := range transmutation {
 			msg.WriteString(person)
-			if i == len(transmutation) - 2 {
+			if i == len(transmutation)-2 {
 				msg.WriteString(", and ")
-			} else if i < len(transmutation) - 2 {
+			} else if i < len(transmutation)-2 {
 				msg.WriteString(", ")
 			}
 		}
-		attendance = len(transmutation)+1
+		attendance = len(transmutation) + 1
 	case "tropolis", "revengers", "mesegea", "jones'", "joneses", "jonesin's":
 		for i, person := range tropolis {
 			msg.WriteString(person)
-			if i == len(tropolis) - 2 {
+			if i == len(tropolis)-2 {
 				msg.WriteString(", and ")
-			} else if i < len(tropolis) - 2 {
+			} else if i < len(tropolis)-2 {
 				msg.WriteString(", ")
 			}
 		}
-		attendance = len(tropolis)+1
+		attendance = len(tropolis) + 1
 	default:
 		attendance = 0
 	}
@@ -44,6 +44,6 @@ func Attendance(campaign string, author string) (msg strings.Builder, dm strings
 	dm.WriteString("! **Thanks for triggering the rollcall!**\nPlease take a moment to create a thread named `attendance` and copy/paste the following chart into the thread between two sets of triple back tics (`):\n\n")
 	dm.WriteString("\nYee | ProbablYee | MaybYee | NYee | AFKYee\n 0  |     0      |    0    |   0  |   ")
 	dm.WriteString(tmp)
-	
+
 	return msg, dm
 }
