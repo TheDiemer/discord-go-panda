@@ -163,6 +163,31 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "quote",
+			Description: "Get quotes!",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "id",
+					Description: "What is the id of the quote you want to see?",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "quoted",
+					Description: "Who do you want to get a quote from?",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"musiclink":  handleMusicLink,
@@ -170,8 +195,88 @@ var (
 		"randomsong": handleRandomSong,
 		"dnd":        handleDnd,
 		"alias":      handleAlias,
+		"quote":      handleQuote,
 	}
 )
+
+func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var id string
+	var quoted string
+	var private bool
+	private = false
+	if len(data.Options) > 2 {
+		switch data.Options[0].Name {
+		case "id":
+			id = data.Options[0].StringValue()
+		case "quoted":
+			quoted = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+		switch data.Options[1].Name {
+		case "id":
+			id = data.Options[1].StringValue()
+		case "quoted":
+			quoted = data.Options[1].StringValue()
+		case "private":
+			private = data.Options[1].BoolValue()
+		}
+		switch data.Options[2].Name {
+		case "id":
+			id = data.Options[2].StringValue()
+		case "quoted":
+			quoted = data.Options[2].StringValue()
+		case "private":
+			private = data.Options[2].BoolValue()
+		}
+	} else if len(data.Options) == 2 {
+		switch data.Options[0].Name {
+		case "id":
+			id = data.Options[0].StringValue()
+		case "quoted":
+			quoted = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+		switch data.Options[1].Name {
+		case "id":
+			id = data.Options[1].StringValue()
+		case "quoted":
+			quoted = data.Options[1].StringValue()
+		case "private":
+			private = data.Options[1].BoolValue()
+		}
+	} else if len(data.Options) == 1 {
+		switch data.Options[0].Name {
+		case "id":
+			id = data.Options[0].StringValue()
+		case "quoted":
+			quoted = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+	}
+	// Privately ack the input
+	var msgformat strings.Builder
+	msgformat.WriteString("I understood that you want to get a quote!\nYou want a quote either by the id:`")
+	msgformat.WriteString(id)
+	msgformat.WriteString("`, the person quoted: `")
+	msgformat.WriteString(quoted)
+	if private {
+		msgformat.WriteString("` or you want a random one! And you want it private!")
+	} else {
+		msgformat.WriteString("` or you want a random one!")
+	}
+	msgformat.WriteString("\nI'll go work on that, just hang tight!")
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
+	})
+}
 
 func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
