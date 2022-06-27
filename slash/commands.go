@@ -50,7 +50,7 @@ func init() {
 	// This is #dnd, which is the PRIMARY intended target
 	dndChannels = append(dndChannels, "654446991912206346")
 	transmutation = []string{"Tisi", "Ptrosk", "Baldrick", "Ikol", "Avu", "Red Staché"}
-	mesegea = []string{"Adelvir", "Akta", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
+	mesegea = []string{"Adelvir", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
 }
 
 func channelCheck(channel string, approvedList []string) (approved bool) {
