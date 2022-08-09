@@ -290,9 +290,12 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		msgformat.WriteString("\nRolling for a random one!")
 	}
 	msgformat.WriteString("\nI'll go work on that, just hang tight!")
-	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-		Flags:   1 << 6,
-		Content: msgformat.String(),
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
 	})
 	info, err := GetQuote(id, quoted, conf)
 	var response strings.Builder
