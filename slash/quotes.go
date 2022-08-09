@@ -16,7 +16,16 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func GetQuote(id string, quoted string, conf config.Config) (info strings.Builder, err error) {
+type quote struct {
+	id     int64
+	quote  string
+	quoted string
+	date   string
+	//channel string
+}
+
+//func GetQuote(id string, quoted string, conf config.Config) (info strings.Builder, err error) {
+func GetQuote(id string, quoted string, conf config.Config) (returned quote, err error) {
 	// Lets set our command based on what you got
 	var command strings.Builder
 	if id != "" {
@@ -38,20 +47,31 @@ func GetQuote(id string, quoted string, conf config.Config) (info strings.Builde
 		fmt.Println(err)
 	} else {
 		if len(response.Values) > 0 {
-			id, _ := response.GetStringByName(0, "id")
-			quote, _ := response.GetStringByName(0, "quote")
-			quoted, _ := response.GetStringByName(0, "quoted")
-			date, _ := response.GetStringByName(0, "date")
-			// channel, _ := response.GetStringByName(0, "channel")
-			info.WriteString("```")
-			info.WriteString(quote)
-			info.WriteString("```\n -- ")
-			info.WriteString(quoted)
-			info.WriteString(", ")
-			info.WriteString(date)
-			info.WriteString(" [")
-			info.WriteString(id)
-			info.WriteString("]")
+			tmpid, _ := response.GetIntByName(0, "id")
+			tmpquote, _ := response.GetStringByName(0, "quote")
+			tmpquoted, _ := response.GetStringByName(0, "quoted")
+			tmpdate, _ := response.GetStringByName(0, "date")
+			// tmpchannel, _ := response.GetStringByName(0, "channel")
+			returned = quote{
+				id:    tmpid,
+				quote: tmpquote,
+
+				quoted: tmpquoted,
+
+				date: tmpdate,
+				//channel: tmpchannel,
+			}
+			/*
+				info.WriteString("```")
+				info.WriteString(quote)
+				info.WriteString("```\n -- ")
+				info.WriteString(quoted)
+				info.WriteString(", ")
+				info.WriteString(date)
+				info.WriteString(" [")
+				info.WriteString(id)
+				info.WriteString("]")
+			*/
 		}
 	}
 	//if len(response.Values) > 0 || err != nil {

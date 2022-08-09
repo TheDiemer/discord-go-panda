@@ -286,6 +286,7 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	msgformat.WriteString("\nI'll go work on that, just hang tight!")
 
 	info, err := GetQuote(id, quoted, conf)
+	fmt.Println(info.String())
 	var response strings.Builder
 	if err != nil {
 		response = commands.ErrorMessage("Error getting quote", info.String())
@@ -300,16 +301,40 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			})
 		}
 	} else {
-		response = commands.SuccessMessage("Quote Collected", info.String())
+		var answer strings.Builder
+		answer.WriteString("```")
+		answer.WriteString(info.quote)
+		answer.WriteString("```\n -- ")
+		answer.WriteString(info.quoted)
+		answer.WriteString(", ")
+		answer.WriteString(info.date)
+		answer.WriteString(" [")
+		answer.WriteString(info.id)
+		answer.WriteString("]")
+		response = commands.SuccessMessage("Quote Collected", answer.String())
 		if private {
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Flags:   1 << 6,
 				Content: response.String(),
 			})
 		} else {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: response.String(),
-			})
+			embed := &discordgo.MessageEmbed{
+				Author:      &discordgo.MessageEmbedAuthor{},
+				Color:       0x317F43, //Signal Green
+				Description: info.quote,
+				Type:        "rich",
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:   "Original Speaker:",
+						Value:  info.quoted,
+						Inline: true,
+					},
+				},
+				Timestamp: info.date,
+				Title:     "Quote #" + info.id,
+			}
+
+			s.ChannelMessageSendEmbed(i.ChannelID, embed)
 		}
 	}
 }
