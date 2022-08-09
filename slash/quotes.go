@@ -2,7 +2,9 @@ package slash
 
 import (
 	"fmt"
+
 	"github.com/TheDiemer/discord-go-panda/config"
+
 	//	"github.com/go-mysql-org/go-mysql/client"
 	//	"github.com/go-mysql-org/go-mysql/mysql"
 	"math/rand"
@@ -32,8 +34,11 @@ func GetQuote(id string, quoted string, conf config.Config) (info strings.Builde
 	response, err := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", command.String())
 
 	// We've now got either no quotes, one quote, or a bunch of quotes
-
-	fmt.Println(response.Values)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(response.Values)
+	}
 	//if len(response.Values) > 0 || err != nil {
 	//	// we got a person back, meaning that alias is in use, or there was an issue with the command itself
 	//	if len(response.Values) > 0 {

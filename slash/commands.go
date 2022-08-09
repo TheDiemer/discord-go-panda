@@ -2,11 +2,12 @@ package slash
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/TheDiemer/discord-go-panda/commands"
 	"github.com/TheDiemer/discord-go-panda/config"
 	"github.com/bwmarrin/discordgo"
-	"strings"
-	"time"
 )
 
 var conf config.Config
@@ -50,7 +51,7 @@ func init() {
 	// This is #dnd, which is the PRIMARY intended target
 	dndChannels = append(dndChannels, "654446991912206346")
 	transmutation = []string{"Tisi", "Ptrosk", "Baldrick", "Ikol", "Avu", "Red Staché"}
-	mesegea = []string{"Adelvir", "Akta", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
+	mesegea = []string{"Adelvir", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
 }
 
 func channelCheck(channel string, approvedList []string) (approved bool) {
@@ -65,6 +66,19 @@ func channelCheck(channel string, approvedList []string) (approved bool) {
 
 var (
 	Commands = []*discordgo.ApplicationCommand{
+		{
+			Name:        "randomwiki",
+			Description: "Get a random wiki entry.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
 		{
 			Name:        "musiclink",
 			Description: "Turn a song link from most platforms into a generic link.",
@@ -190,6 +204,7 @@ var (
 		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"randomwiki": handleRandomWiki,
 		"musiclink":  handleMusicLink,
 		"rollcall":   handleRollcall,
 		"randomsong": handleRandomSong,
@@ -269,13 +284,7 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		msgformat.WriteString("` or you want a random one!")
 	}
 	msgformat.WriteString("\nI'll go work on that, just hang tight!")
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: msgformat.String(),
-		},
-	})
+
 	info, err := GetQuote(id, quoted, conf)
 	var response strings.Builder
 	if err != nil {
@@ -302,6 +311,71 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Content: response.String(),
 			})
 		}
+	}
+}
+
+func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	var msgformat strings.Builder
+	msgformat.WriteString("I understood that you want a random wiki entry! Gimme a sec...")
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
+	})
+	var private bool
+	if len(i.ApplicationCommandData().Options) > 0 {
+		private = i.ApplicationCommandData().Options[0].BoolValue()
+	} else {
+		private = false
+	}
+	wiki, err := GetWiki()
+	if err != nil {
+		fmt.Println("error is: ", err.Error())
+	} else {
+		fmt.Println("wiki entry is: ", wiki)
+	}
+	if err != nil {
+		message := commands.ErrorMessage("Random Wiki Failed", err.Error())
+		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+			Flags:   1 << 6,
+			Content: message.String(),
+		})
+		// problems
+	} else {
+
+		if private {
+			message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: "+wiki.ContentURLs.Desktop.Page)
+			fmt.Println(message.String())
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: message.String(),
+			})
+		} else {
+			message := "Successfully collected a random wiki page!"
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: message,
+			})
+			embed := &discordgo.MessageEmbed{
+				Author:      &discordgo.MessageEmbedAuthor{},
+				Color:       0xCD7F32, //Wiki bronze
+				Description: wiki.Extract,
+				Type:        "rich",
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:   "url",
+						Value:  wiki.ContentURLs.Desktop.Page,
+						Inline: true,
+					},
+				},
+				Timestamp: time.Now().Format(time.RFC3339),
+				Title:     wiki.Title,
+			}
+
+			s.ChannelMessageSendEmbed(i.ChannelID, embed)
+		}
+
 	}
 }
 
