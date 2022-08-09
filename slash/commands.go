@@ -2,6 +2,7 @@ package slash
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -286,10 +287,9 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	msgformat.WriteString("\nI'll go work on that, just hang tight!")
 
 	info, err := GetQuote(id, quoted, conf)
-	fmt.Println(info.String())
 	var response strings.Builder
 	if err != nil {
-		response = commands.ErrorMessage("Error getting quote", info.String())
+		response = commands.ErrorMessage("Error getting quote", "No quote to be found.")
 		if private {
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Flags:   1 << 6,
@@ -309,7 +309,7 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		answer.WriteString(", ")
 		answer.WriteString(info.date)
 		answer.WriteString(" [")
-		answer.WriteString(info.id)
+		answer.WriteString(strconv.Itoa(info.id))
 		answer.WriteString("]")
 		response = commands.SuccessMessage("Quote Collected", answer.String())
 		if private {
@@ -331,7 +331,7 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					},
 				},
 				Timestamp: info.date,
-				Title:     "Quote #" + info.id,
+				Title:     "Quote #" + strconv.Itoa(info.id),
 			}
 
 			s.ChannelMessageSendEmbed(i.ChannelID, embed)
