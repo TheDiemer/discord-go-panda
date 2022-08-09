@@ -203,6 +203,25 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "addquote",
+			Description: "Transcribe a memory into our history books.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "quote",
+					Description: "What is the quote to be saved?",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "quoted",
+					Description: "Who said the quote?",
+					Required:    true,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -212,8 +231,35 @@ var (
 		"dnd":        handleDnd,
 		"alias":      handleAlias,
 		"quote":      handleQuote,
+		"addquote":   handleAddQuote,
 	}
 )
+
+func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var quote string
+	quote = data.Options[0].StringValue()
+	var quoted string
+	quoted = data.Options[1].StringValue()
+	var quoter string
+	// quoter = SOMEONE
+	var channel string
+	// channel = SOMEWHERE
+	var date string
+	date = time.Now().Format(time.RFC3339)
+	info, err := AddQuote(quote, quoted, quoter, channel, date)
+	if err != nil {
+		response := commands.ErrorMessage("Error saving quote", info.String())
+		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+			Content: response.String(),
+		})
+	} else {
+		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+			Content: info.String(),
+		})
+	}
+
+}
 
 func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()

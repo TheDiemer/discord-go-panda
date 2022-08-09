@@ -24,6 +24,42 @@ type quote struct {
 	//channel string
 }
 
+func AddQuote(quote string, quoted string, quoter string, channel string, date string) (info strings.Builder, err error) {
+	var command strings.Builder
+	command.WriteString("INSERT INTO quotes values('")
+	command.WriteString(date)
+	command.WriteString("', '")
+	command.WriteString(quoted)
+	command.WriteString("', '")
+	command.WriteString(quote)
+	command.WriteString("', '")
+	command.WriteString(quoter)
+	command.WriteString("', '")	
+	command.WriteString(channel)
+	command.WriteString("');")
+	err = dbWrite(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", command.String())
+	if err == nil {
+		var getCommand strings.Builder
+		getCommand.WriteString("select id from quotes where quote = '")
+		getCommand.WriteString(quote)
+		getCommand.WriteString("';")
+		response, err2 := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", getCommand.String())
+		if err2 == nil {
+			info.WriteString("Quote successfully added!\nNew quote id: **")
+			tmpid, _ := response.GetIntByName(0, "id")
+			info.WriteString(tmpid)
+			info.WriteString("**.")
+		} else {
+			info.WriteString('Quote was successfully added, but I failed to identify its number...\n**Sorry!**\n¯\_(ツ)_/¯')
+		}
+	} else {
+		info.WriteString("Quote was not added. Please see the explanation:\n`")
+		info.WriteString(err.Error())
+		info.WriteString("\n`.")
+	}
+	return
+}
+
 //func GetQuote(id string, quoted string, conf config.Config) (info strings.Builder, err error) {
 func GetQuote(id string, quoted string, conf config.Config) (returned quote, err error) {
 	// Lets set our command based on what you got
@@ -61,53 +97,7 @@ func GetQuote(id string, quoted string, conf config.Config) (returned quote, err
 				date: tmpdate,
 				//channel: tmpchannel,
 			}
-			/*
-				info.WriteString("```")
-				info.WriteString(quote)
-				info.WriteString("```\n -- ")
-				info.WriteString(quoted)
-				info.WriteString(", ")
-				info.WriteString(date)
-				info.WriteString(" [")
-				info.WriteString(id)
-				info.WriteString("]")
-			*/
 		}
 	}
-	//if len(response.Values) > 0 || err != nil {
-	//	// we got a person back, meaning that alias is in use, or there was an issue with the command itself
-	//	if len(response.Values) > 0 {
-	//		tmp, _ := response.GetStringByName(0, "person")
-	//		err = fmt.Errorf("That alias is already in use!")
-	//		info.WriteString("\nThat alias is already in use! It currently points to `")
-	//		info.WriteString(tmp)
-	//		info.WriteString("`!")
-	//	} else {
-	//		info.WriteString("\nAn error occurred while reading the current values:\n`")
-	//		info.WriteString(err.Error())
-	//		info.WriteString("`")
-	//	}
-	//} else {
-	//	fmt.Println("newest here")
-	//	// either no error AND no people, so lets store this alias
-	//	var writeCommand strings.Builder
-	//	writeCommand.WriteString("INSERT INTO alias values('")
-	//	writeCommand.WriteString(nick)
-	//	writeCommand.WriteString("', '")
-	//	writeCommand.WriteString(alias)
-	//	writeCommand.WriteString("');")
-	//	err = dbWrite(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "karma", writeCommand.String())
-	//	if err == nil {
-	//		info.WriteString("\n`")
-	//		info.WriteString(nick)
-	//		info.WriteString("` is now known as `")
-	//		info.WriteString(alias)
-	//		info.WriteString("`!")
-	//	} else {
-	//		info.WriteString("\nSomething happened while saving the new alias:\n`")
-	//		info.WriteString(err.Error())
-	//		info.WriteString("`")
-	//	}
-	//}
 	return
 }
