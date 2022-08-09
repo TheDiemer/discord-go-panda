@@ -275,17 +275,25 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	// Privately ack the input
 	var msgformat strings.Builder
-	msgformat.WriteString("I understood that you want to get a quote!\nYou want a quote either by the id:`")
-	msgformat.WriteString(id)
-	msgformat.WriteString("`, the person quoted: `")
-	msgformat.WriteString(quoted)
-	if private {
-		msgformat.WriteString("` or you want a random one! And you want it private!")
+	msgformat.WriteString("I understood that you want to get a quote!")
+	if id != "" {
+		msgformat.WriteString("\nYou hope to get the specific quote id: `")
+		msgformat.WriteString(id)
+		msgformat.WriteString("`")
+	} else if quoted != "" {
+		msgformat.WriteString("\nYou hope to get a quote specifically from: `")
+		msgformat.WriteString(quoted)
+		msgformat.WriteString("`")
+	} else if private {
+		msgformat.WriteString("\nYou want to get it discreetly!")
 	} else {
-		msgformat.WriteString("` or you want a random one!")
+		msgformat.WriteString("\nRolling for a random one!")
 	}
 	msgformat.WriteString("\nI'll go work on that, just hang tight!")
-
+	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		Flags:   1 << 6,
+		Content: msgformat.String(),
+	})
 	info, err := GetQuote(id, quoted, conf)
 	var response strings.Builder
 	if err != nil {
