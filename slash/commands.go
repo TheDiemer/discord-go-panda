@@ -2,11 +2,13 @@ package slash
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/TheDiemer/discord-go-panda/commands"
 	"github.com/TheDiemer/discord-go-panda/config"
 	"github.com/bwmarrin/discordgo"
-	"strings"
-	"time"
 )
 
 var conf config.Config
@@ -176,6 +178,31 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "quote",
+			Description: "Get quotes!",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "id",
+					Description: "What is the id of the quote you want to see?",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "quoted",
+					Description: "Who do you want to get a quote from?",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "private",
+					Description: "Only display the output to you.",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -184,8 +211,144 @@ var (
 		"randomsong": handleRandomSong,
 		"dnd":        handleDnd,
 		"alias":      handleAlias,
+		"quote":      handleQuote,
 	}
 )
+
+func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var id string
+	var quoted string
+	var private bool
+	private = false
+	if len(data.Options) > 2 {
+		switch data.Options[0].Name {
+		case "id":
+			id = data.Options[0].StringValue()
+		case "quoted":
+			quoted = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+		switch data.Options[1].Name {
+		case "id":
+			id = data.Options[1].StringValue()
+		case "quoted":
+			quoted = data.Options[1].StringValue()
+		case "private":
+			private = data.Options[1].BoolValue()
+		}
+		switch data.Options[2].Name {
+		case "id":
+			id = data.Options[2].StringValue()
+		case "quoted":
+			quoted = data.Options[2].StringValue()
+		case "private":
+			private = data.Options[2].BoolValue()
+		}
+	} else if len(data.Options) == 2 {
+		switch data.Options[0].Name {
+		case "id":
+			id = data.Options[0].StringValue()
+		case "quoted":
+			quoted = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+		switch data.Options[1].Name {
+		case "id":
+			id = data.Options[1].StringValue()
+		case "quoted":
+			quoted = data.Options[1].StringValue()
+		case "private":
+			private = data.Options[1].BoolValue()
+		}
+	} else if len(data.Options) == 1 {
+		switch data.Options[0].Name {
+		case "id":
+			id = data.Options[0].StringValue()
+		case "quoted":
+			quoted = data.Options[0].StringValue()
+		case "private":
+			private = data.Options[0].BoolValue()
+		}
+	}
+	// Privately ack the input
+	var msgformat strings.Builder
+	msgformat.WriteString("I understood that you want to get a quote!")
+	if id != "" {
+		msgformat.WriteString("\nYou hope to get the specific quote id: `")
+		msgformat.WriteString(id)
+		msgformat.WriteString("`")
+	} else if quoted != "" {
+		msgformat.WriteString("\nYou hope to get a quote specifically from: `")
+		msgformat.WriteString(quoted)
+		msgformat.WriteString("`")
+	} else if private {
+		msgformat.WriteString("\nYou want to get it discreetly!")
+	} else {
+		msgformat.WriteString("\nRolling for a random one!")
+	}
+	msgformat.WriteString("\nI'll go work on that, just hang tight!")
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: msgformat.String(),
+		},
+	})
+	info, err := GetQuote(id, quoted, conf)
+	var response strings.Builder
+	if err != nil {
+		response = commands.ErrorMessage("Error getting quote", "No quote to be found.")
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: response.String(),
+			})
+		} else {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Content: response.String(),
+			})
+		}
+	} else {
+		var answer strings.Builder
+		answer.WriteString("```")
+		answer.WriteString(info.quote)
+		answer.WriteString("```\n -- ")
+		answer.WriteString(info.quoted)
+		answer.WriteString(", ")
+		answer.WriteString(info.date)
+		answer.WriteString(" [")
+		answer.WriteString(strconv.FormatInt(info.id, 10))
+		answer.WriteString("]")
+		response = commands.SuccessMessage("Quote Collected", answer.String())
+		if private {
+			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+				Flags:   1 << 6,
+				Content: response.String(),
+			})
+		} else {
+			embed := &discordgo.MessageEmbed{
+				Author:      &discordgo.MessageEmbedAuthor{},
+				Color:       0x317F43, //Signal Green
+				Description: info.quote,
+				Type:        "rich",
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:   "Original Speaker:",
+						Value:  info.quoted,
+						Inline: true,
+					},
+				},
+				Timestamp: info.date,
+				Title:     "Quote #" + strconv.FormatInt(info.id, 10),
+			}
+
+			s.ChannelMessageSendEmbed(i.ChannelID, embed)
+		}
+	}
+}
 
 func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var msgformat strings.Builder
