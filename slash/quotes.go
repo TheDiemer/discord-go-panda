@@ -42,17 +42,16 @@ func GetQuote(id string, quoted string, conf config.Config) (info strings.Builde
 			quote, _ := response.GetStringByName(0, "quote")
 			quoted, _ := response.GetStringByName(0, "quoted")
 			date, _ := response.GetStringByName(0, "date")
-			channel, _ := response.GetStringByName(0, "channel")
-			var quote_response strings.Builder
-			quote_response.WriteString("```")
-			quote_response.WriteString(quote)
-			quote_response.WriteString("```\n -- ")
-			quote_response.WriteString(quoted)
-			quote_response.WriteString(", ")
-			quote_response.WriteString(date)
-			quote_response.WriteString(" [")
-			quote_response.WriteString(id)
-			quote_response.WriteString("]")
+			// channel, _ := response.GetStringByName(0, "channel")
+			info.WriteString("```")
+			info.WriteString(quote)
+			info.WriteString("```\n -- ")
+			info.WriteString(quoted)
+			info.WriteString(", ")
+			info.WriteString(date)
+			info.WriteString(" [")
+			info.WriteString(id)
+			info.WriteString("]")
 		}
 	}
 	//if len(response.Values) > 0 || err != nil {
