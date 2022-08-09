@@ -317,7 +317,7 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		answer.WriteString(", ")
 		answer.WriteString(info.date)
 		answer.WriteString(" [")
-		answer.WriteString(strconv.Itoa(info.id))
+		answer.WriteString(strconv.FormatInt(info.id, 10))
 		answer.WriteString("]")
 		response = commands.SuccessMessage("Quote Collected", answer.String())
 		if private {
@@ -339,7 +339,7 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					},
 				},
 				Timestamp: info.date,
-				Title:     "Quote #" + strconv.Itoa(info.id),
+				Title:     "Quote #" + strconv.FormatInt(info.id, 10),
 			}
 
 			s.ChannelMessageSendEmbed(i.ChannelID, embed)
