@@ -24,11 +24,11 @@ func GetQuote(id string, quoted string, conf config.Config) (info strings.Builde
 		command.WriteString(id)
 		command.WriteString("';")
 	} else if quoted != "" {
-		command.WriteString("select * from quotes where id = '")
-		command.WriteString(id)
+		command.WriteString("select * from quotes where quoted = '")
+		command.WriteString(quoted)
 		command.WriteString("';")
 	} else {
-		command.WriteString("select * from quotes;")
+		command.WriteString("select * from quotes where channel = 0 order by rand() limit 1;")
 	}
 	// response, tmpErr := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "karma", command.String())
 	response, err := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", command.String())
@@ -37,7 +37,23 @@ func GetQuote(id string, quoted string, conf config.Config) (info strings.Builde
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println(response.Values)
+		if len(response.Values) > 0 {
+			id, _ := response.GetStringByName(0, "id")
+			quote, _ := response.GetStringByName(0, "quote")
+			quoted, _ := response.GetStringByName(0, "quoted")
+			date, _ := response.GetStringByName(0, "date")
+			channel, _ := response.GetStringByName(0, "channel")
+			var quote_response strings.Builder
+			quote_response.WriteString("```")
+			quote_response.WriteString(quote)
+			quote_response.WriteString("```\n -- ")
+			quote_response.WriteString(quoted)
+			quote_response.WriteString(", ")
+			quote_response.WriteString(date)
+			quote_response.WriteString(" [")
+			quote_response.WriteString(id)
+			quote_response.WriteString("]")
+		}
 	}
 	//if len(response.Values) > 0 || err != nil {
 	//	// we got a person back, meaning that alias is in use, or there was an issue with the command itself
