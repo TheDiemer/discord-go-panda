@@ -8,6 +8,7 @@ import (
 	//	"github.com/go-mysql-org/go-mysql/client"
 	//	"github.com/go-mysql-org/go-mysql/mysql"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -34,7 +35,7 @@ func AddQuote(quote string, quoted string, quoter string, channel string, date s
 	command.WriteString(quote)
 	command.WriteString("', '")
 	command.WriteString(quoter)
-	command.WriteString("', '")	
+	command.WriteString("', '")
 	command.WriteString(channel)
 	command.WriteString("');")
 	err = dbWrite(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", command.String())
@@ -47,10 +48,10 @@ func AddQuote(quote string, quoted string, quoter string, channel string, date s
 		if err2 == nil {
 			info.WriteString("Quote successfully added!\nNew quote id: **")
 			tmpid, _ := response.GetIntByName(0, "id")
-			info.WriteString(tmpid)
+			info.WriteString(strconv.FormatInt(tmpid, 10))
 			info.WriteString("**.")
 		} else {
-			info.WriteString('Quote was successfully added, but I failed to identify its number...\n**Sorry!**\n¯\_(ツ)_/¯')
+			info.WriteString("Quote was successfully added, but I failed to identify its number...\n**Sorry!**\n¯\\_(ツ)_/¯")
 		}
 	} else {
 		info.WriteString("Quote was not added. Please see the explanation:\n`")
