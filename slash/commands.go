@@ -203,6 +203,43 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "poll",
+			Description: "Ask your current channel a poll with configurable response options.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "question",
+					Description: "Question or poll to ask the channel!",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "title",
+					Description: "General Topic of your poll (default: POLL).",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "color",
+					Description: "Decimal code for the Color on the side of the card (default: 15597568 (or EE0000 in hex)).",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "responses",
+					Description: "Comma separated list of :emoji:=Meaning (default: :yee:=Positive, :wolo:=Neutral, :nooo:=Negative).",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "ping",
+					Description: "Space separated list of users/roles to send a ping to.",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -212,8 +249,86 @@ var (
 		"dnd":        handleDnd,
 		"alias":      handleAlias,
 		"quote":      handleQuote,
+		"poll":       handlePoll,
 	}
 )
+
+func handlePoll(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: "Ack! Generating and sending your poll!",
+		},
+	})
+	data := i.ApplicationCommandData()
+	var question string
+	var title string
+	var color string
+	var responses string
+	var ping string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "question":
+			question = option.StringValue()
+		case "title":
+			title = option.StringValue()
+		case "color":
+			color = option.StringValue()
+		case "responses":
+			responses = option.StringValue()
+		case "ping":
+			ping = option.StringValue()
+		}
+	}
+	if title == "" {
+		title = "POLL"
+	}
+	if color == "" {
+		color = "15597568"
+	}
+	finalColor, _ := strconv.Atoi(color)
+	if responses == "" {
+		responses = "<:yee:707604728724324382>=Positive Response, <:wolo:789952118739042334>=Neutral Response, <:nooo:846428536939741244>=Negative Response"
+	}
+	tmpResponses := strings.Split(responses, ", ")
+	responses = strings.Join(tmpResponses, "\n")
+	if ping != "" {
+		var pinged strings.Builder
+		pinged.WriteString("Hey, ")
+		pinged.WriteString(ping)
+		pinged.WriteString(", <@")
+		id := i.Member.User.ID
+		if id == "" {
+			id := i.User.ID
+			fmt.Println(id)
+		}
+		fmt.Println(id)
+		pinged.WriteString(id)
+		pinged.WriteString("> is asking a poll! Please respond as you're able!")
+		_, err := s.ChannelMessageSend(i.ChannelID, pinged.String())
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	embed := &discordgo.MessageEmbed{
+		Author:      &discordgo.MessageEmbedAuthor{},
+		Color:       finalColor,
+		// Color:       ,
+		Description: "Taking a poll",
+		Type:        "rich",
+		Fields: []*discordgo.MessageEmbedField{
+			&discordgo.MessageEmbedField{
+				Name:   question,
+				Value:  responses,
+				Inline: true,
+			},
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+		Title:     title,
+	}
+	s.ChannelMessageSendEmbed(i.ChannelID, embed)
+}
 
 func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
@@ -273,30 +388,6 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			private = data.Options[0].BoolValue()
 		}
 	}
-	// Privately ack the input
-	var msgformat strings.Builder
-	msgformat.WriteString("I understood that you want to get a quote!")
-	if id != "" {
-		msgformat.WriteString("\nYou hope to get the specific quote id: `")
-		msgformat.WriteString(id)
-		msgformat.WriteString("`")
-	} else if quoted != "" {
-		msgformat.WriteString("\nYou hope to get a quote specifically from: `")
-		msgformat.WriteString(quoted)
-		msgformat.WriteString("`")
-	} else if private {
-		msgformat.WriteString("\nYou want to get it discreetly!")
-	} else {
-		msgformat.WriteString("\nRolling for a random one!")
-	}
-	msgformat.WriteString("\nI'll go work on that, just hang tight!")
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: msgformat.String(),
-		},
-	})
 	info, err := GetQuote(id, quoted, conf)
 	var response strings.Builder
 	if err != nil {
@@ -306,7 +397,24 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Flags:   1 << 6,
 				Content: response.String(),
 			})
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				//Type: discordgo.InteractionResponseDeferredMessageUpdate,
+				// Type: InteractionResponseUpdateMessage,
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags:   1 << 6,
+					Content: response.String(),
+				},
+			})
 		} else {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				// Type: discordgo.InteractionResponseDeferredMessageUpdate,
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				// Type: InteractionResponseUpdateMessage,
+				Data: &discordgo.InteractionResponseData{
+					Content: response.String(),
+				},
+			})
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Content: response.String(),
 			})
@@ -323,30 +431,47 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		answer.WriteString(strconv.FormatInt(info.id, 10))
 		answer.WriteString("]")
 		response = commands.SuccessMessage("Quote Collected", answer.String())
+		embed := &discordgo.MessageEmbed{
+			Author:      &discordgo.MessageEmbedAuthor{},
+			Color:       0x317F43, //Signal Green
+			Description: info.quote,
+			Type:        "rich",
+			Fields: []*discordgo.MessageEmbedField{
+				&discordgo.MessageEmbedField{
+					Name:   "Original Speaker:",
+					Value:  info.quoted,
+					Inline: true,
+				},
+			},
+			Timestamp: info.date,
+			Title:     "Quote #" + strconv.FormatInt(info.id, 10),
+		}
+		var embeds []*discordgo.MessageEmbed
+		embeds = append(embeds, embed)
+
 		if private {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: response.String(),
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				//Type: discordgo.InteractionResponseDeferredMessageUpdate,
+				//Type: discordgo.InteractionResponseUpdateMessage,
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: embeds,
+					Flags:   1 << 6,
+					// [embed]*discordgo.MessageEmbed,
+				},
 			})
 		} else {
-			embed := &discordgo.MessageEmbed{
-				Author:      &discordgo.MessageEmbedAuthor{},
-				Color:       0x317F43, //Signal Green
-				Description: info.quote,
-				Type:        "rich",
-				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
-						Name:   "Original Speaker:",
-						Value:  info.quoted,
-						Inline: true,
-					},
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				//Type: discordgo.InteractionResponseDeferredMessageUpdate,
+				//Type: discordgo.InteractionResponseUpdateMessage,
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: embeds,
+					// [embed]*discordgo.MessageEmbed,
 				},
-				Timestamp: info.date,
-				Title:     "Quote #" + strconv.FormatInt(info.id, 10),
-			}
-
-			s.ChannelMessageSendEmbed(i.ChannelID, embed)
+			})
 		}
+		// s.ChannelMessageSendEmbed(i.ChannelID, embed)
 	}
 }
 
