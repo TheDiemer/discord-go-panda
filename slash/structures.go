@@ -1,5 +1,14 @@
 package slash
 
+type Giphy struct {
+	Data []GiphyData `json:"data"`
+
+
+}
+
+type GiphyData {
+}
+
 type Wiki struct {
 	Type              string          `json:"type"`
 	Title             string          `json:"title"`
