@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/TheDiemer/discord-go-panda/config"
 	"github.com/TheDiemer/discord-go-panda/slash"
@@ -30,6 +32,7 @@ func init() {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
+	rand.Seed(time.Now().UnixNano())
 }
 
 func main() {

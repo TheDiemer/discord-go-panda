@@ -7,14 +7,8 @@ import (
 
 	//	"github.com/go-mysql-org/go-mysql/client"
 	//	"github.com/go-mysql-org/go-mysql/mysql"
-	"math/rand"
 	"strings"
-	"time"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 type quote struct {
 	id     int64

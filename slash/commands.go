@@ -8,6 +8,7 @@ import (
 
 	"github.com/TheDiemer/discord-go-panda/commands"
 	"github.com/TheDiemer/discord-go-panda/config"
+	"github.com/TheDiemer/discord-go-panda/functions"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -240,6 +241,19 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "cheer",
+			Description: "Send a gif to cheer someone on! Optionally Tag them if you want to highlight your target!",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "target",
+					Description: "@ whomever you want to cheer on!",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -250,8 +264,34 @@ var (
 		"alias":      handleAlias,
 		"quote":      handleQuote,
 		"poll":       handlePoll,
+		"cheer":      handleCheer,
 	}
 )
+
+func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var target string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "target":
+			target = option.StringValue()
+		}
+	}
+	var response strings.Builder
+	gif := functions.GetGiph(conf)
+	if target != "" {
+		response.WriteString("Hey ")
+		response.WriteString(target)
+		response.WriteString(",\n")
+	}
+	response.WriteString(gif)
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: response.String(),
+		},
+	})
+}
 
 func handlePoll(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
