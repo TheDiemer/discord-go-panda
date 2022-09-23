@@ -8,12 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"time"
-)
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+	"github.com/TheDiemer/discord-go-panda/config"
+)
 
 func GetSong() (song string, err error) {
 	// To get our random song, we will get a bunch of artists from deezer
@@ -29,7 +26,7 @@ func GetSong() (song string, err error) {
 	}
 
 	// Define the variable that'll hold all the artists and their data
-	var deezer Deezer
+	var deezer config.Deezer
 	// Unmarshal the response INTO said variable
 	json.Unmarshal([]byte(body), &deezer)
 
@@ -44,8 +41,8 @@ func GetSong() (song string, err error) {
 		return
 	}
 	// Define the variable that'll hold all the artists and their data
-	var artistAlbums Albums
-	var listOfAlbums []Album
+	var artistAlbums config.Albums
+	var listOfAlbums []config.Album
 	// Unmarshal the response INTO said variable
 	json.Unmarshal([]byte(body2), &artistAlbums)
 	if artistAlbums.Next == "" {
@@ -53,11 +50,11 @@ func GetSong() (song string, err error) {
 			listOfAlbums = append(listOfAlbums, album)
 		}
 	} else {
-		var albumList []Albums
+		var albumList []config.Albums
 		albumList = append(albumList, artistAlbums)
 		for {
 			// Define the variable that'll hold all the artists and their data
-			var tmpAlbums Albums
+			var tmpAlbums config.Albums
 			var body3 []byte
 			body3, err = myCall(artistAlbums.Next)
 			if err != nil {
@@ -82,7 +79,7 @@ func GetSong() (song string, err error) {
 	album := listOfAlbums[rand.Intn(len(listOfAlbums))]
 	fmt.Println(album)
 
-	var chosenAlbum ChosenAlbum
+	var chosenAlbum config.ChosenAlbum
 	var albumData []byte
 	albumData, err = myCall(album.Tracklist)
 	if err != nil {
@@ -98,7 +95,7 @@ func GetSong() (song string, err error) {
 	songLinkUrl += url.PathEscape(ChosenSong.Link)
 	songLinkUrl += "&userCountry=US"
 
-	var songLinkInfo SongLink
+	var songLinkInfo config.SongLink
 	var songLinkData []byte
 	songLinkData, err = myCall(songLinkUrl)
 	if err != nil {
