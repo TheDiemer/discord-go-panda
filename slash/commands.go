@@ -254,6 +254,19 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "component",
+			Description: "Send a component to test things",
+			Type:        discordgo.ChatApplicationCommand,
+                        Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionBool,
+					Name:        "private",
+					Description: "You want this private?",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -265,8 +278,26 @@ var (
 		"quote":      handleQuote,
 		"poll":       handlePoll,
 		"cheer":      handleCheer,
+		"component":  handleComponent,
 	}
 )
+
+func handleComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var private bool
+	for _, option := range data.Options {
+		switch option.Name {
+		case "private":
+			private = option.BoolValue()
+		}
+	}
+	response := &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+
+	err := s.InteractionRespond(i.Interaction, response)
+	if err != nil {panic(err)}
+}
 
 func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
