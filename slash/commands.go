@@ -981,7 +981,12 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
-				s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				sent, _ := s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "yee:707604728724324382")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "megusta:775469871454486549")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "wolo:789952118739042334")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "sus:808326972475834449")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "nooo:846428536939741244")
 			} else if data.Options[0].StringValue() == "mesegea" {
 				// Privately ack the input
 				var msgformat strings.Builder
@@ -1035,7 +1040,12 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
-				s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				sent, _ := s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "yee:707604728724324382")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "megusta:775469871454486549")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "wolo:789952118739042334")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "sus:808326972475834449")
+				s.MessageReactionAdd(sent.ChannelID, sent.ID, "nooo:846428536939741244")
 			} else {
 				info.WriteString("\nUnfortunately, `")
 				info.WriteString(data.Options[0].StringValue())
