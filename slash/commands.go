@@ -254,6 +254,19 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "blink",
+			Description: "blink! Optionally blink At someone",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "target",
+					Description: "@ Whomever you want to blink at...",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -265,8 +278,46 @@ var (
 		"quote":      handleQuote,
 		"poll":       handlePoll,
 		"cheer":      handleCheer,
+		"blink":      handleBlink,
 	}
 )
+
+func handleBlink(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var target string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "target":
+			target = option.StringValue()
+		}
+	}
+	var response strings.Builder
+	if target != "" {
+		response.WriteString("Hey ")
+		response.WriteString(target)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	} else {
+		response.WriteString("Hey ")
+		response.WriteString(i.Member.User.Username)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	}
+	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		Content: "https://cdn.discordapp.com/attachments/778744161317683283/1027334449039413389/blink1.gif",
+	})
+
+}
 
 func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
@@ -283,13 +334,25 @@ func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		response.WriteString("Hey ")
 		response.WriteString(target)
 		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	} else {
+		response.WriteString("Here ")
+		response.WriteString(i.Member.User.Username)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
 	}
-	response.WriteString(gif)
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: response.String(),
-		},
+	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		Content: gif,
 	})
 }
 
