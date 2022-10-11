@@ -17,6 +17,7 @@ var err error
 var dndChannels []string
 var transmutation []string
 var mesegea []string
+var rollCallReactions []string
 
 func trimLeftChars(s string, n int) string {
 	m := 0
@@ -54,6 +55,13 @@ func init() {
 	dndChannels = append(dndChannels, "654446991912206346")
 	transmutation = []string{"Tisi", "Ptrosk", "Baldrick", "Ikol", "Avu", "Red Staché"}
 	mesegea = []string{"Adelvir", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
+	rollCallReactions = []string{
+		"yee:707604728724324382",
+		"megusta:775469871454486549",
+		"wolo:789952118739042334",
+		"sus:808326972475834449",
+		"nooo:846428536939741244",
+	}
 }
 
 func channelCheck(channel string, approvedList []string) (approved bool) {
@@ -914,11 +922,21 @@ func handleMusicLink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var checkMsg strings.Builder
-	checkMsg.WriteString("<:yee:707604728724324382> = Yee\n")
-	checkMsg.WriteString("<:megusta:775469871454486549> = ProbablYee\n")
-	checkMsg.WriteString("<:wolo:789952118739042334> = MabYee\n")
-	checkMsg.WriteString("<:sus:808326972475834449> = ProbablNYee\n")
-	checkMsg.WriteString("<:nooo:846428536939741244> = NYee")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[0])
+	checkMsg.WriteString("> = Yee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[1])
+	checkMsg.WriteString("> = ProbablYee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[2])
+	checkMsg.WriteString("> = MabYee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[3])
+	checkMsg.WriteString("> = ProbablNYee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[4])
+	checkMsg.WriteString("> = NYee")
 	var mydudes string
 	tmp, _ := s.GuildRoles(conf.Discord.Guild)
 
@@ -981,12 +999,13 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
-				sent, _ := s.ChannelMessageSendEmbed(i.ChannelID, embed)
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "yee:707604728724324382")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "megusta:775469871454486549")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "wolo:789952118739042334")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "sus:808326972475834449")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "nooo:846428536939741244")
+				sent, err := s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				if err != nil {
+					fmt.Println(err)
+				}
+				for _, emoji := range rollCallReactions {
+					s.MessageReactionAdd(sent.ChannelID, sent.ID, emoji)
+				}
 			} else if data.Options[0].StringValue() == "mesegea" {
 				// Privately ack the input
 				var msgformat strings.Builder
@@ -1040,12 +1059,13 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
-				sent, _ := s.ChannelMessageSendEmbed(i.ChannelID, embed)
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "yee:707604728724324382")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "megusta:775469871454486549")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "wolo:789952118739042334")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "sus:808326972475834449")
-				s.MessageReactionAdd(sent.ChannelID, sent.ID, "nooo:846428536939741244")
+				sent, err := s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				if err != nil {
+					fmt.Println(err)
+				}
+				for _, emoji := range rollCallReactions {
+					s.MessageReactionAdd(sent.ChannelID, sent.ID, emoji)
+				}
 			} else {
 				info.WriteString("\nUnfortunately, `")
 				info.WriteString(data.Options[0].StringValue())
