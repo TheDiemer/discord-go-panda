@@ -6,7 +6,7 @@ import (
 )
 
 func testBeans(t *testing.T) {
-	bean := gimmeBeans("test")
+	bean := GimmeBeans("test")
 	expected := "hey test, https://"
 
 	if !strings.Contains(bean.String(), expected) {

@@ -2,9 +2,11 @@ package slash
 
 import (
 	"encoding/json"
+
+	"github.com/TheDiemer/discord-go-panda/config"
 )
 
-func GetWiki() (wiki Wiki, err error) {
+func GetWiki() (wiki config.Wiki, err error) {
 	// To get our random wiki, we will just ask wikipedia for a random page!
 	var randWikiURL string
 	randWikiURL = "https://en.wikipedia.org/api/rest_v1/page/random/summary"
@@ -20,23 +22,3 @@ func GetWiki() (wiki Wiki, err error) {
 	json.Unmarshal([]byte(body), &wiki)
 	return
 }
-
-// func myCall(myURL string) (body []byte, err error) {
-// 	var resp *http.Response
-// 	resp, err = http.Get(myURL)
-// 	if err != nil {
-// 		fmt.Println("issues getting the output back. Currently the url is: ", myURL)
-// 		fmt.Println("and the error is: ", err)
-// 	}
-// 	defer resp.Body.Close()
-// 	if resp.StatusCode != 200 {
-// 		fmt.Println("issues getting the output back. Currently the url is: ", myURL)
-// 		fmt.Println("and the error is: ", err)
-// 	} else {
-// 		body, err = ioutil.ReadAll(resp.Body)
-// 		if err != nil {
-// 			panic(err.Error())
-// 		}
-// 	}
-// 	return
-// }

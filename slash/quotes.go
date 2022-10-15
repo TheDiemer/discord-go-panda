@@ -7,6 +7,7 @@ import (
 
 	//	"github.com/go-mysql-org/go-mysql/client"
 	//	"github.com/go-mysql-org/go-mysql/mysql"
+<<<<<<< HEAD
 	"math/rand"
 	"strings"
 	"time"
@@ -16,6 +17,11 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+=======
+	"strings"
+)
+
+>>>>>>> main
 type quote struct {
 	id     int64
 	quote  string

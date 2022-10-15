@@ -12,3 +12,7 @@ database:
   ip: "localhost"
   db_username: "DB_MASTER_USERNAME"
   db_password: "DB_MASTER_PASSWORD"
+    
+# Giphy Information
+giphy:
+  key: "YOUR_API_KEY"
