@@ -326,13 +326,25 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	info, err := AddQuote(quote, quoted, quoter, channel)
 	if err != nil {
 		response := commands.ErrorMessage("Error saving quote", info.String())
-		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-			Content: response.String(),
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
 		})
+		//s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		//	Content: response.String(),
+		//})
 	} else {
-		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-			Content: info.String(),
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: info.String(),
+			},
 		})
+		//s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		//	Content: info.String(),
+		//})
 	}
 
 }
