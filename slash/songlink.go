@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/TheDiemer/discord-go-panda/config"
 )
 
 func GetSongLink(link string) (success bool, info strings.Builder) {
@@ -33,7 +35,7 @@ func GetSongLink(link string) (success bool, info strings.Builder) {
 			info.WriteString("Error occurred reading the response: ")
 			info.WriteString(err.Error())
 		}
-		var plat SongLink
+		var plat config.SongLink
 		json.Unmarshal([]byte(string(body)), &plat)
 		success = true
 		info.WriteString(plat.PageUrl)

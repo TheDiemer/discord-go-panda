@@ -8,6 +8,7 @@ import (
 
 	"github.com/TheDiemer/discord-go-panda/commands"
 	"github.com/TheDiemer/discord-go-panda/config"
+	"github.com/TheDiemer/discord-go-panda/functions"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -16,6 +17,7 @@ var err error
 var dndChannels []string
 var transmutation []string
 var mesegea []string
+var rollCallReactions []string
 
 func trimLeftChars(s string, n int) string {
 	m := 0
@@ -53,6 +55,13 @@ func init() {
 	dndChannels = append(dndChannels, "654446991912206346")
 	transmutation = []string{"Tisi", "Ptrosk", "Baldrick", "Ikol", "Avu", "Red Staché"}
 	mesegea = []string{"Adelvir", "Ayayron", "Duvu", "Gisli", "Krasus", "Wrench"}
+	rollCallReactions = []string{
+		"yee:707604728724324382",
+		"megusta:775469871454486549",
+		"wolo:789952118739042334",
+		"sus:808326972475834449",
+		"nooo:846428536939741244",
+	}
 }
 
 func channelCheck(channel string, approvedList []string) (approved bool) {
@@ -222,6 +231,69 @@ var (
 				},
 			},
 		},
+		{
+			Name:        "poll",
+			Description: "Ask your current channel a poll with configurable response options.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "question",
+					Description: "Question or poll to ask the channel!",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "title",
+					Description: "General Topic of your poll (default: POLL).",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "color",
+					Description: "Decimal code for the Color on the side of the card (default: 15597568 (or EE0000 in hex)).",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "responses",
+					Description: "Comma separated list of :emoji:=Meaning (default: :yee:=Positive, :wolo:=Neutral, :nooo:=Negative).",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "ping",
+					Description: "Space separated list of users/roles to send a ping to.",
+					Required:    false,
+				},
+			},
+		},
+		{
+			Name:        "cheer",
+			Description: "Send a gif to cheer someone on! Optionally Tag them if you want to highlight your target!",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "target",
+					Description: "@ whomever you want to cheer on!",
+					Required:    false,
+				},
+			},
+		},
+		{
+			Name:        "blink",
+			Description: "blink! Optionally blink At someone",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "target",
+					Description: "@ Whomever you want to blink at...",
+					Required:    false,
+				},
+			},
+		},
 	}
 	CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"randomwiki": handleRandomWiki,
@@ -232,6 +304,9 @@ var (
 		"alias":      handleAlias,
 		"quote":      handleQuote,
 		"addquote":   handleAddQuote,
+		"poll":       handlePoll,
+		"cheer":      handleCheer,
+		"blink":      handleBlink,
 	}
 )
 
@@ -242,9 +317,9 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var quoted string
 	quoted = data.Options[1].StringValue()
 	var quoter string
-	// quoter = SOMEONE
+	quoter = i.Member.User.ID
 	var channel string
-	// channel = SOMEWHERE
+	channel = i.ChannelID
 	var date string
 	date = time.Now().Format(time.RFC3339)
 	info, err := AddQuote(quote, quoted, quoter, channel, date)
@@ -261,88 +336,172 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 }
 
+func handleBlink(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var target string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "target":
+			target = option.StringValue()
+		}
+	}
+	var response strings.Builder
+	if target != "" {
+		response.WriteString("Hey ")
+		response.WriteString(target)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	} else {
+		response.WriteString("Hey ")
+		response.WriteString(i.Member.User.Username)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	}
+	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		Content: "https://cdn.discordapp.com/attachments/778744161317683283/1027334449039413389/blink1.gif",
+	})
+
+}
+
+func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var target string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "target":
+			target = option.StringValue()
+		}
+	}
+	var response strings.Builder
+	gif := functions.GetGiph(conf)
+	if target != "" {
+		response.WriteString("Hey ")
+		response.WriteString(target)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	} else {
+		response.WriteString("Here ")
+		response.WriteString(i.Member.User.Username)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	}
+	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		Content: gif,
+	})
+}
+
+func handlePoll(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags:   1 << 6,
+			Content: "Ack! Generating and sending your poll!",
+		},
+	})
+	data := i.ApplicationCommandData()
+	var question string
+	var title string
+	var color string
+	var responses string
+	var ping string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "question":
+			question = option.StringValue()
+		case "title":
+			title = option.StringValue()
+		case "color":
+			color = option.StringValue()
+		case "responses":
+			responses = option.StringValue()
+		case "ping":
+			ping = option.StringValue()
+		}
+	}
+	if title == "" {
+		title = "POLL"
+	}
+	if color == "" {
+		color = "15597568"
+	}
+	finalColor, _ := strconv.Atoi(color)
+	if responses == "" {
+		responses = "<:yee:707604728724324382>=Positive Response, <:wolo:789952118739042334>=Neutral Response, <:nooo:846428536939741244>=Negative Response"
+	}
+	tmpResponses := strings.Split(responses, ", ")
+	responses = strings.Join(tmpResponses, "\n")
+	if ping != "" {
+		var pinged strings.Builder
+		pinged.WriteString("Hey, ")
+		pinged.WriteString(ping)
+		pinged.WriteString(", <@")
+		id := i.Member.User.ID
+		if id == "" {
+			id := i.User.ID
+			fmt.Println(id)
+		}
+		fmt.Println(id)
+		pinged.WriteString(id)
+		pinged.WriteString("> is asking a poll! Please respond as you're able!")
+		_, err := s.ChannelMessageSend(i.ChannelID, pinged.String())
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	embed := &discordgo.MessageEmbed{
+		Author:      &discordgo.MessageEmbedAuthor{},
+		Color:       finalColor,
+		Description: "Taking a poll",
+		Type:        "rich",
+		Fields: []*discordgo.MessageEmbedField{
+			&discordgo.MessageEmbedField{
+				Name:   question,
+				Value:  responses,
+				Inline: true,
+			},
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+		Title:     title,
+	}
+	s.ChannelMessageSendEmbed(i.ChannelID, embed)
+}
+
 func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	var id string
 	var quoted string
 	var private bool
 	private = false
-	if len(data.Options) > 2 {
-		switch data.Options[0].Name {
+	for _, option := range data.Options {
+		switch option.Name {
 		case "id":
-			id = data.Options[0].StringValue()
+			id = option.StringValue()
 		case "quoted":
-			quoted = data.Options[0].StringValue()
+			quoted = option.StringValue()
 		case "private":
-			private = data.Options[0].BoolValue()
-		}
-		switch data.Options[1].Name {
-		case "id":
-			id = data.Options[1].StringValue()
-		case "quoted":
-			quoted = data.Options[1].StringValue()
-		case "private":
-			private = data.Options[1].BoolValue()
-		}
-		switch data.Options[2].Name {
-		case "id":
-			id = data.Options[2].StringValue()
-		case "quoted":
-			quoted = data.Options[2].StringValue()
-		case "private":
-			private = data.Options[2].BoolValue()
-		}
-	} else if len(data.Options) == 2 {
-		switch data.Options[0].Name {
-		case "id":
-			id = data.Options[0].StringValue()
-		case "quoted":
-			quoted = data.Options[0].StringValue()
-		case "private":
-			private = data.Options[0].BoolValue()
-		}
-		switch data.Options[1].Name {
-		case "id":
-			id = data.Options[1].StringValue()
-		case "quoted":
-			quoted = data.Options[1].StringValue()
-		case "private":
-			private = data.Options[1].BoolValue()
-		}
-	} else if len(data.Options) == 1 {
-		switch data.Options[0].Name {
-		case "id":
-			id = data.Options[0].StringValue()
-		case "quoted":
-			quoted = data.Options[0].StringValue()
-		case "private":
-			private = data.Options[0].BoolValue()
+			private = option.BoolValue()
 		}
 	}
-	// Privately ack the input
-	var msgformat strings.Builder
-	msgformat.WriteString("I understood that you want to get a quote!")
-	if id != "" {
-		msgformat.WriteString("\nYou hope to get the specific quote id: `")
-		msgformat.WriteString(id)
-		msgformat.WriteString("`")
-	} else if quoted != "" {
-		msgformat.WriteString("\nYou hope to get a quote specifically from: `")
-		msgformat.WriteString(quoted)
-		msgformat.WriteString("`")
-	} else if private {
-		msgformat.WriteString("\nYou want to get it discreetly!")
-	} else {
-		msgformat.WriteString("\nRolling for a random one!")
-	}
-	msgformat.WriteString("\nI'll go work on that, just hang tight!")
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: msgformat.String(),
-		},
-	})
 	info, err := GetQuote(id, quoted, conf)
 	var response strings.Builder
 	if err != nil {
@@ -352,7 +511,20 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Flags:   1 << 6,
 				Content: response.String(),
 			})
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags:   1 << 6,
+					Content: response.String(),
+				},
+			})
 		} else {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: response.String(),
+				},
+			})
 			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
 				Content: response.String(),
 			})
@@ -369,43 +541,44 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		answer.WriteString(strconv.FormatInt(info.id, 10))
 		answer.WriteString("]")
 		response = commands.SuccessMessage("Quote Collected", answer.String())
+		embed := &discordgo.MessageEmbed{
+			Author:      &discordgo.MessageEmbedAuthor{},
+			Color:       0x317F43, //Signal Green
+			Description: info.quote,
+			Type:        "rich",
+			Fields: []*discordgo.MessageEmbedField{
+				&discordgo.MessageEmbedField{
+					Name:   "Original Speaker:",
+					Value:  info.quoted,
+					Inline: true,
+				},
+			},
+			Timestamp: info.date,
+			Title:     "Quote #" + strconv.FormatInt(info.id, 10),
+		}
+		var embeds []*discordgo.MessageEmbed
+		embeds = append(embeds, embed)
+
 		if private {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: response.String(),
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: embeds,
+					Flags:  1 << 6,
+				},
 			})
 		} else {
-			embed := &discordgo.MessageEmbed{
-				Author:      &discordgo.MessageEmbedAuthor{},
-				Color:       0x317F43, //Signal Green
-				Description: info.quote,
-				Type:        "rich",
-				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
-						Name:   "Original Speaker:",
-						Value:  info.quoted,
-						Inline: true,
-					},
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: embeds,
 				},
-				Timestamp: info.date,
-				Title:     "Quote #" + strconv.FormatInt(info.id, 10),
-			}
-
-			s.ChannelMessageSendEmbed(i.ChannelID, embed)
+			})
 		}
 	}
 }
 
 func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var msgformat strings.Builder
-	msgformat.WriteString("I understood that you want a random wiki entry! Gimme a sec...")
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: msgformat.String(),
-		},
-	})
 	var private bool
 	if len(i.ApplicationCommandData().Options) > 0 {
 		private = i.ApplicationCommandData().Options[0].BoolValue()
@@ -415,49 +588,51 @@ func handleRandomWiki(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	wiki, err := GetWiki()
 	if err != nil {
 		fmt.Println("error is: ", err.Error())
+		message := commands.ErrorMessage("Random Wiki Failed", err.Error())
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: message.String(),
+				Flags:   1 << 6,
+			},
+		})
 	} else {
 		fmt.Println("wiki entry is: ", wiki)
-	}
-	if err != nil {
-		message := commands.ErrorMessage("Random Wiki Failed", err.Error())
-		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-			Flags:   1 << 6,
-			Content: message.String(),
-		})
-		// problems
-	} else {
-
-		if private {
-			message := commands.SuccessMessage("Successfully collected a random wiki page: "+wiki.Title, "\n"+wiki.Extract+"\nURL: "+wiki.ContentURLs.Desktop.Page)
-			fmt.Println(message.String())
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: message.String(),
-			})
-		} else {
-			message := "Successfully collected a random wiki page!"
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: message,
-			})
-			embed := &discordgo.MessageEmbed{
-				Author:      &discordgo.MessageEmbedAuthor{},
-				Color:       0xCD7F32, //Wiki bronze
-				Description: wiki.Extract,
-				Type:        "rich",
-				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
-						Name:   "url",
-						Value:  wiki.ContentURLs.Desktop.Page,
-						Inline: true,
-					},
+		embed := &discordgo.MessageEmbed{
+			Author:      &discordgo.MessageEmbedAuthor{},
+			Color:       0xCD7F32, //Wiki bronze
+			Description: wiki.Extract,
+			Type:        "rich",
+			Fields: []*discordgo.MessageEmbedField{
+				&discordgo.MessageEmbedField{
+					Name:   "url",
+					Value:  wiki.ContentURLs.Desktop.Page,
+					Inline: true,
 				},
-				Timestamp: time.Now().Format(time.RFC3339),
-				Title:     wiki.Title,
-			}
-
-			s.ChannelMessageSendEmbed(i.ChannelID, embed)
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+			Title:     wiki.Title,
 		}
 
+		var embeds []*discordgo.MessageEmbed
+		embeds = append(embeds, embed)
+
+		if private {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: embeds,
+					Flags:  1 << 6,
+				},
+			})
+		} else {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds: embeds,
+				},
+			})
+		}
 	}
 }
 
@@ -467,79 +642,52 @@ func handleAlias(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var alias string
 	var private bool
 	private = false
-	if len(data.Options) > 2 {
-		switch data.Options[0].Name {
+	for _, option := range data.Options {
+		switch option.Name {
 		case "og-nick":
-			nick = data.Options[0].StringValue()
+			nick = option.StringValue()
 		case "alias":
-			alias = data.Options[0].StringValue()
+			alias = option.StringValue()
 		case "private":
-			private = data.Options[0].BoolValue()
-		}
-		switch data.Options[1].Name {
-		case "og-nick":
-			nick = data.Options[1].StringValue()
-		case "alias":
-			alias = data.Options[1].StringValue()
-		case "private":
-			private = data.Options[1].BoolValue()
-		}
-		switch data.Options[2].Name {
-		case "og-nick":
-			nick = data.Options[2].StringValue()
-		case "alias":
-			alias = data.Options[2].StringValue()
-		case "private":
-			private = data.Options[2].BoolValue()
-		}
-	} else {
-		switch data.Options[0].Name {
-		case "og-nick":
-			nick = data.Options[0].StringValue()
-			alias = data.Options[1].StringValue()
-		case "alias":
-			alias = data.Options[0].StringValue()
-			nick = data.Options[1].StringValue()
+			private = option.BoolValue()
 		}
 	}
-	// Privately ack the input
-	var msgformat strings.Builder
-	msgformat.WriteString("I understood that you want to create a new alias!\nYou think that `")
-	msgformat.WriteString(nick)
-	msgformat.WriteString("` should be called `")
-	msgformat.WriteString(alias)
-	msgformat.WriteString("`!\nI'll go work on that, just hang tight!")
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags:   1 << 6,
-			Content: msgformat.String(),
-		},
-	})
 	info, err := Alias(nick, alias, conf)
 	var response strings.Builder
 	if err != nil {
 		response = commands.ErrorMessage("Error Creating Alias", info.String())
 		if private {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: response.String(),
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags:   1 << 6,
+					Content: response.String(),
+				},
 			})
 		} else {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: response.String(),
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: response.String(),
+				},
 			})
 		}
 	} else {
 		response = commands.SuccessMessage("Alias Created", info.String())
 		if private {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Flags:   1 << 6,
-				Content: response.String(),
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Flags:   1 << 6,
+					Content: response.String(),
+				},
 			})
 		} else {
-			s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-				Content: response.String(),
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: response.String(),
+				},
 			})
 		}
 	}
@@ -775,17 +923,14 @@ func handleRandomSong(s *discordgo.Session, i *discordgo.InteractionCreate) {
 func handleMusicLink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var link string
 	var private bool
-	if len(i.ApplicationCommandData().Options) > 1 {
-		if i.ApplicationCommandData().Options[0].Name == "link" {
-			link = i.ApplicationCommandData().Options[0].StringValue()
-			private = i.ApplicationCommandData().Options[1].BoolValue()
-		} else {
-			private = i.ApplicationCommandData().Options[0].BoolValue()
-			link = i.ApplicationCommandData().Options[1].StringValue()
+	data := i.ApplicationCommandData()
+	for _, option := range data.Options {
+		switch option.Name {
+		case "link":
+			link = option.StringValue()
+		case "private":
+			private = option.BoolValue()
 		}
-	} else {
-		link = i.ApplicationCommandData().Options[0].StringValue()
-		private = false
 	}
 	// Privately ack the input
 	var msgformat strings.Builder
@@ -823,11 +968,21 @@ func handleMusicLink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var checkMsg strings.Builder
-	checkMsg.WriteString("<:yee:707604728724324382> = Yee\n")
-	checkMsg.WriteString("<:megusta:775469871454486549> = ProbablYee\n")
-	checkMsg.WriteString("<:wolo:789952118739042334> = MabYee\n")
-	checkMsg.WriteString("<:sus:808326972475834449> = ProbablNYee\n")
-	checkMsg.WriteString("<:nooo:846428536939741244> = NYee")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[0])
+	checkMsg.WriteString("> = Yee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[1])
+	checkMsg.WriteString("> = ProbablYee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[2])
+	checkMsg.WriteString("> = MabYee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[3])
+	checkMsg.WriteString("> = ProbablNYee\n")
+	checkMsg.WriteString("<:")
+	checkMsg.WriteString(rollCallReactions[4])
+	checkMsg.WriteString("> = NYee")
 	var mydudes string
 	tmp, _ := s.GuildRoles(conf.Discord.Guild)
 
@@ -890,7 +1045,13 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
-				s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				sent, err := s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				if err != nil {
+					fmt.Println(err)
+				}
+				for _, emoji := range rollCallReactions {
+					s.MessageReactionAdd(sent.ChannelID, sent.ID, emoji)
+				}
 			} else if data.Options[0].StringValue() == "mesegea" {
 				// Privately ack the input
 				var msgformat strings.Builder
@@ -944,7 +1105,13 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Timestamp: time.Now().Format(time.RFC3339),
 					Title:     "Roll Calllllll",
 				}
-				s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				sent, err := s.ChannelMessageSendEmbed(i.ChannelID, embed)
+				if err != nil {
+					fmt.Println(err)
+				}
+				for _, emoji := range rollCallReactions {
+					s.MessageReactionAdd(sent.ChannelID, sent.ID, emoji)
+				}
 			} else {
 				info.WriteString("\nUnfortunately, `")
 				info.WriteString(data.Options[0].StringValue())
@@ -971,7 +1138,6 @@ func handleRollcall(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			})
 		}
 	case discordgo.InteractionApplicationCommandAutocomplete:
-		//data := i.ApplicationCommandData()
 		choices := []*discordgo.ApplicationCommandOptionChoice{
 			{
 				Name:  "noodles",

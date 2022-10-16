@@ -7,22 +7,17 @@ import (
 
 	//	"github.com/go-mysql-org/go-mysql/client"
 	//	"github.com/go-mysql-org/go-mysql/mysql"
-	"math/rand"
+
 	"strconv"
 	"strings"
-	"time"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 type quote struct {
-	id     int64
-	quote  string
-	quoted string
-	date   string
-	//channel string
+	id      int64
+	quote   string
+	quoted  string
+	date    string
+	channel string
 }
 
 func AddQuote(quote string, quoted string, quoter string, channel string, date string) (info strings.Builder, err error) {
@@ -88,15 +83,15 @@ func GetQuote(id string, quoted string, conf config.Config) (returned quote, err
 			tmpquote, _ := response.GetStringByName(0, "quote")
 			tmpquoted, _ := response.GetStringByName(0, "quoted")
 			tmpdate, _ := response.GetStringByName(0, "date")
-			// tmpchannel, _ := response.GetStringByName(0, "channel")
+			tmpchannel, _ := response.GetStringByName(0, "channel")
 			returned = quote{
 				id:    tmpid,
 				quote: tmpquote,
 
 				quoted: tmpquoted,
 
-				date: tmpdate,
-				//channel: tmpchannel,
+				date:    tmpdate,
+				channel: tmpchannel,
 			}
 		}
 	}

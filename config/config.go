@@ -19,6 +19,9 @@ type Config struct {
 		DB_Username string `yaml:"db_username"`
 		DB_Password string `yaml:"db_password"`
 	} `yaml:"database"`
+	Giphy struct {
+		Key string `yaml:"key"`
+	}
 }
 
 func ReadFile(conf_name, conf_path, conf_type string) (config Config, err error) {
