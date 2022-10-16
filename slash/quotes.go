@@ -33,6 +33,7 @@ func AddQuote(quote string, quoted string, quoter string, channel string, date s
 	command.WriteString("', '")
 	command.WriteString(channel)
 	command.WriteString("');")
+	fmt.Println(command.String())
 	err = dbWrite(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", command.String())
 	if err == nil {
 		var getCommand strings.Builder
