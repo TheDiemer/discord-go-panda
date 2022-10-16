@@ -20,11 +20,12 @@ type quote struct {
 	channel string
 }
 
-func AddQuote(quote string, quoted string, quoter string, channel string, date string) (info strings.Builder, err error) {
+// func AddQuote(quote string, quoted string, quoter string, channel string, date string) (info strings.Builder, err error) {
+func AddQuote(quote string, quoted string, quoter string, channel string) (info strings.Builder, err error) {
 	var command strings.Builder
-	command.WriteString("INSERT INTO quotes values('")
-	command.WriteString(date)
-	command.WriteString("', '")
+	command.WriteString("INSERT INTO quotes (quoted, quote, quoter, channel) values ('")
+	// command.WriteString(date)
+	// command.WriteString("', '")
 	command.WriteString(quoted)
 	command.WriteString("', '")
 	command.WriteString(quote)

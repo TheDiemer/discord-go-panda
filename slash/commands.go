@@ -320,9 +320,10 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	quoter = i.Member.User.ID
 	var channel string
 	channel = i.ChannelID
-	var date string
-	date = time.Now().Format(time.RFC3339)
-	info, err := AddQuote(quote, quoted, quoter, channel, date)
+	//var date string
+	//date = time.Now().Format(time.RFC3339)
+	//info, err := AddQuote(quote, quoted, quoter, channel, date)
+	info, err := AddQuote(quote, quoted, quoter, channel)
 	if err != nil {
 		response := commands.ErrorMessage("Error saving quote", info.String())
 		s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
