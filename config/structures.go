@@ -1,18 +1,18 @@
 package config
 
 type RetrievedQuote struct {
-	id      int64
-	quote   string
-	quoted  string
-	date    string
-	channel string
+	ID      int64
+	Quote   string
+	Quoted  string
+	Date    string
+	Channel string
 }
 
 type NewQuote struct {
-	quote   string
-	quoted  string
-	quoter  string
-	channel string
+	Quote   string
+	Quoted  string
+	Quoter  string
+	Channel string
 }
 
 type Giphy struct {

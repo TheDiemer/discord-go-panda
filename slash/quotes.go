@@ -16,20 +16,20 @@ func AddQuote(newQuote config.NewQuote) (info strings.Builder, err error) {
 	command.WriteString("INSERT INTO quotes (quoted, quote, quoter, channel) values ('")
 	// command.WriteString(date)
 	// command.WriteString("', '")
-	command.WriteString(newQuote.quoted)
+	command.WriteString(newQuote.Quoted)
 	command.WriteString("', '")
-	command.WriteString(newQuote.quote)
+	command.WriteString(newQuote.Quote)
 	command.WriteString("', '")
-	command.WriteString(newQuote.quoter)
+	command.WriteString(newQuote.Quoter)
 	command.WriteString("', '")
-	command.WriteString(newQuote.channel)
+	command.WriteString(newQuote.Channel)
 	command.WriteString("');")
 	fmt.Println(command.String())
 	err = dbWrite(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", command.String())
 	if err == nil {
 		var getCommand strings.Builder
 		getCommand.WriteString("select id from quotes where quote = '")
-		getCommand.WriteString(newQuote.quote)
+		getCommand.WriteString(newQuote.Quote)
 		getCommand.WriteString("';")
 		response, err2 := dbGet(conf.Database.IP, conf.Database.DB_Username, conf.Database.DB_Password, "quotes", getCommand.String())
 		if err2 == nil {
@@ -76,7 +76,7 @@ func GetQuote(id string, quoted string, conf config.Config) (returned config.Ret
 			tmpdate, _ := response.GetStringByName(0, "date")
 			tmpchannel, _ := response.GetStringByName(0, "channel")
 			// returned = &config.RetrievedQuote{}
-			returned.id, returned.quote, returned.quoted, returned.date, returned.channel = tmpid, tmpquote, tmpquoted, tmpdate, tmpchannel
+			returned.ID, returned.Quote, returned.Quoted, returned.Date, returned.Channel = tmpid, tmpquote, tmpquoted, tmpdate, tmpchannel
 		}
 	}
 	return

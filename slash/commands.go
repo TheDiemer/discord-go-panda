@@ -314,15 +314,15 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	// newQuote := &config.NewQuote{}
 	// newQuote.quote, newQuote.quoted, newQuote.quoter, newQuote.channel = data.Options[0].StringValue(), data.Options[1].StringValue(), i.Member.User.ID, i.ChannelID
-	SanitizedQuote := &config.NewQuote{}
-	tmp := strings.Replace(data.Options[0].StringValue(), "'", "\'")
-	tmp = strings.Replace(tmp, '"', '\"')
-	SanitizedQuote.quote = tmp
-	tmp := strings.Replace(data.Options[1].StringValue(), "'", "\'")
-	tmp = strings.Replace(tmp, '"', '\"')
-	SanitizedQuote.quoted = tmp
-	SanitizedQuote.quoter = i.Member.User.ID
-	SanitizedQuote.channel = i.ChannelID
+	SanitizedQuote := config.NewQuote{}
+	tmp := strings.Replace(data.Options[0].StringValue(), `'`, `\'`, -1)
+	tmp = strings.Replace(tmp, `"`, `\"`, -1)
+	SanitizedQuote.Quote = tmp
+	tmp = strings.Replace(data.Options[1].StringValue(), `'`, `\'`, -1)
+	tmp = strings.Replace(tmp, `"`, `\"`, -1)
+	SanitizedQuote.Quoted = tmp
+	SanitizedQuote.Quoter = i.Member.User.ID
+	SanitizedQuote.Channel = i.ChannelID
 	// var quote string
 	// quote = data.Options[0].StringValue()
 	// var quoted string
@@ -557,29 +557,29 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	} else {
 		var answer strings.Builder
 		answer.WriteString("```")
-		answer.WriteString(info.quote)
+		answer.WriteString(info.Quote)
 		answer.WriteString("```\n -- ")
-		answer.WriteString(info.quoted)
+		answer.WriteString(info.Quoted)
 		answer.WriteString(", ")
-		answer.WriteString(info.date)
+		answer.WriteString(info.Date)
 		answer.WriteString(" [")
-		answer.WriteString(strconv.FormatInt(info.id, 10))
+		answer.WriteString(strconv.FormatInt(info.ID, 10))
 		answer.WriteString("]")
 		response = commands.SuccessMessage("Quote Collected", answer.String())
 		embed := &discordgo.MessageEmbed{
 			Author:      &discordgo.MessageEmbedAuthor{},
 			Color:       0x317F43, //Signal Green
-			Description: info.quote,
+			Description: info.Quote,
 			Type:        "rich",
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
 					Name:   "Original Speaker:",
-					Value:  info.quoted,
+					Value:  info.Quoted,
 					Inline: true,
 				},
 			},
-			Timestamp: info.date,
-			Title:     "Quote #" + strconv.FormatInt(info.id, 10),
+			Timestamp: info.Date,
+			Title:     "Quote #" + strconv.FormatInt(info.ID, 10),
 		}
 		var embeds []*discordgo.MessageEmbed
 		embeds = append(embeds, embed)
