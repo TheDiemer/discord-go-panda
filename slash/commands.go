@@ -312,8 +312,6 @@ var (
 
 func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
-	// newQuote := &config.NewQuote{}
-	// newQuote.quote, newQuote.quoted, newQuote.quoter, newQuote.channel = data.Options[0].StringValue(), data.Options[1].StringValue(), i.Member.User.ID, i.ChannelID
 	SanitizedQuote := config.NewQuote{}
 	tmp := strings.Replace(data.Options[0].StringValue(), `'`, `\'`, -1)
 	tmp = strings.Replace(tmp, `"`, `\"`, -1)
@@ -323,18 +321,6 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	SanitizedQuote.Quoted = tmp
 	SanitizedQuote.Quoter = i.Member.User.ID
 	SanitizedQuote.Channel = i.ChannelID
-	// var quote string
-	// quote = data.Options[0].StringValue()
-	// var quoted string
-	// quoted = data.Options[1].StringValue()
-	// var quoter string
-	// quoter = i.Member.User.ID
-	// var channel string
-	// channel = i.ChannelID
-	//var date string
-	//date = time.Now().Format(time.RFC3339)
-	//info, err := AddQuote(quote, quoted, quoter, channel, date)
-	// info, err := AddQuote(quote, quoted, quoter, channel)
 	info, err := AddQuote(SanitizedQuote)
 	if err != nil {
 		response := commands.ErrorMessage("Error saving quote", info.String())
@@ -344,9 +330,6 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Content: response.String(),
 			},
 		})
-		//s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-		//	Content: response.String(),
-		//})
 	} else {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -354,9 +337,6 @@ func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Content: info.String(),
 			},
 		})
-		//s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
-		//	Content: info.String(),
-		//})
 	}
 
 }

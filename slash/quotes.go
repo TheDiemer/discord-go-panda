@@ -9,13 +9,9 @@ import (
 	"strings"
 )
 
-// func AddQuote(quote string, quoted string, quoter string, channel string, date string) (info strings.Builder, err error) {
-// func AddQuote(quote string, quoted string, quoter string, channel string) (info strings.Builder, err error) {
 func AddQuote(newQuote config.NewQuote) (info strings.Builder, err error) {
 	var command strings.Builder
 	command.WriteString("INSERT INTO quotes (quoted, quote, quoter, channel) values ('")
-	// command.WriteString(date)
-	// command.WriteString("', '")
 	command.WriteString(newQuote.Quoted)
 	command.WriteString("', '")
 	command.WriteString(newQuote.Quote)
@@ -48,7 +44,6 @@ func AddQuote(newQuote config.NewQuote) (info strings.Builder, err error) {
 	return
 }
 
-//func GetQuote(id string, quoted string, conf config.Config) (info strings.Builder, err error) {
 func GetQuote(id string, quoted string, conf config.Config) (returned config.RetrievedQuote, err error) {
 	// Lets set our command based on what you got
 	var command strings.Builder
@@ -75,7 +70,6 @@ func GetQuote(id string, quoted string, conf config.Config) (returned config.Ret
 			tmpquoted, _ := response.GetStringByName(0, "quoted")
 			tmpdate, _ := response.GetStringByName(0, "date")
 			tmpchannel, _ := response.GetStringByName(0, "channel")
-			// returned = &config.RetrievedQuote{}
 			returned.ID, returned.Quote, returned.Quoted, returned.Date, returned.Channel = tmpid, tmpquote, tmpquoted, tmpdate, tmpchannel
 		}
 	}
