@@ -11,11 +11,11 @@ import (
 	"github.com/TheDiemer/discord-go-panda/config"
 )
 
-func GetGiph(conf config.Config) string {
+func GetRandomGiph(search string, conf config.Config) string {
 	startingUrl := "https://api.giphy.com/v1/gifs/search"
 	variables := make(map[string]string)
 	variables["api_key"] = conf.Giphy.Key
-	variables["q"] = "Cheering"
+	variables["q"] = search
 	variables["rating"] = "pg-13"
 	url := UrlBuilder(startingUrl, variables)
 

@@ -282,6 +282,19 @@ var (
 			},
 		},
 		{
+			Name:        "gator",
+			Description: "Send some gif with gators! Optionally Tag a person if you want to highlight your target!",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "target",
+					Description: "@ whomever you want to cheer on!",
+					Required:    false,
+				},
+			},
+		},
+		{
 			Name:        "blink",
 			Description: "blink! Optionally blink At someone",
 			Type:        discordgo.ChatApplicationCommand,
@@ -306,6 +319,7 @@ var (
 		"addquote":   handleAddQuote,
 		"poll":       handlePoll,
 		"cheer":      handleCheer,
+		"gator":      handleGator,
 		"blink":      handleBlink,
 	}
 )
@@ -378,6 +392,43 @@ func handleBlink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 }
 
+func handleGator(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	var target string
+	for _, option := range data.Options {
+		switch option.Name {
+		case "target":
+			target = option.StringValue()
+		}
+	}
+	var response strings.Builder
+	gif := functions.GetRandomGiph("gator", conf)
+	if target != "" {
+		response.WriteString("Hey ")
+		response.WriteString(target)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	} else {
+		response.WriteString("Here ")
+		response.WriteString(i.Member.User.Username)
+		response.WriteString(",\n")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	}
+	s.FollowupMessageCreate(s.State.User.ID, i.Interaction, true, &discordgo.WebhookParams{
+		Content: gif,
+	})
+}
+
 func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	var target string
@@ -388,7 +439,7 @@ func handleCheer(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 	var response strings.Builder
-	gif := functions.GetGiph(conf)
+	gif := functions.GetRandomGiph("Cheering", conf)
 	if target != "" {
 		response.WriteString("Hey ")
 		response.WriteString(target)
