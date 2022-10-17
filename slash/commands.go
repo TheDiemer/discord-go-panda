@@ -213,6 +213,25 @@ var (
 			},
 		},
 		{
+			Name:        "addquote",
+			Description: "Transcribe a memory into our history books.",
+			Type:        discordgo.ChatApplicationCommand,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "quote",
+					Description: "What is the quote to be saved?",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "quoted",
+					Description: "Who said the quote?",
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "poll",
 			Description: "Ask your current channel a poll with configurable response options.",
 			Type:        discordgo.ChatApplicationCommand,
@@ -284,11 +303,43 @@ var (
 		"dnd":        handleDnd,
 		"alias":      handleAlias,
 		"quote":      handleQuote,
+		"addquote":   handleAddQuote,
 		"poll":       handlePoll,
 		"cheer":      handleCheer,
 		"blink":      handleBlink,
 	}
 )
+
+func handleAddQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	SanitizedQuote := config.NewQuote{}
+	tmp := strings.Replace(data.Options[0].StringValue(), `'`, `\'`, -1)
+	tmp = strings.Replace(tmp, `"`, `\"`, -1)
+	SanitizedQuote.Quote = tmp
+	tmp = strings.Replace(data.Options[1].StringValue(), `'`, `\'`, -1)
+	tmp = strings.Replace(tmp, `"`, `\"`, -1)
+	SanitizedQuote.Quoted = tmp
+	SanitizedQuote.Quoter = i.Member.User.ID
+	SanitizedQuote.Channel = i.ChannelID
+	info, err := AddQuote(SanitizedQuote)
+	if err != nil {
+		response := commands.ErrorMessage("Error saving quote", info.String())
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: response.String(),
+			},
+		})
+	} else {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: info.String(),
+			},
+		})
+	}
+
+}
 
 func handleBlink(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
@@ -486,29 +537,29 @@ func handleQuote(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	} else {
 		var answer strings.Builder
 		answer.WriteString("```")
-		answer.WriteString(info.quote)
+		answer.WriteString(info.Quote)
 		answer.WriteString("```\n -- ")
-		answer.WriteString(info.quoted)
+		answer.WriteString(info.Quoted)
 		answer.WriteString(", ")
-		answer.WriteString(info.date)
+		answer.WriteString(info.Date)
 		answer.WriteString(" [")
-		answer.WriteString(strconv.FormatInt(info.id, 10))
+		answer.WriteString(strconv.FormatInt(info.ID, 10))
 		answer.WriteString("]")
 		response = commands.SuccessMessage("Quote Collected", answer.String())
 		embed := &discordgo.MessageEmbed{
 			Author:      &discordgo.MessageEmbedAuthor{},
 			Color:       0x317F43, //Signal Green
-			Description: info.quote,
+			Description: info.Quote,
 			Type:        "rich",
 			Fields: []*discordgo.MessageEmbedField{
 				&discordgo.MessageEmbedField{
 					Name:   "Original Speaker:",
-					Value:  info.quoted,
+					Value:  info.Quoted,
 					Inline: true,
 				},
 			},
-			Timestamp: info.date,
-			Title:     "Quote #" + strconv.FormatInt(info.id, 10),
+			Timestamp: info.Date,
+			Title:     "Quote #" + strconv.FormatInt(info.ID, 10),
 		}
 		var embeds []*discordgo.MessageEmbed
 		embeds = append(embeds, embed)

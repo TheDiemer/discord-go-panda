@@ -1,5 +1,20 @@
 package config
 
+type RetrievedQuote struct {
+	ID      int64
+	Quote   string
+	Quoted  string
+	Date    string
+	Channel string
+}
+
+type NewQuote struct {
+	Quote   string
+	Quoted  string
+	Quoter  string
+	Channel string
+}
+
 type Giphy struct {
 	Data       []GiphyData `json:"data"`
 	Pagination struct {
